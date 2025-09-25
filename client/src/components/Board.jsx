@@ -1,4 +1,6 @@
-import { EmptyCell } from "../types";
+import React from "react";
+import Cell from "./Cell";
+import { EmptyCell, BOARD_WIDTH, BOARD_HEIGHT } from "../types";
 
 const getCellColor = (cellType) => {
   const colors = {
@@ -13,25 +15,78 @@ const getCellColor = (cellType) => {
   return colors[cellType] || "bg-gray-500";
 };
 
-function Board({ currentBoard }) {
+const Board = ({
+  currentBoard,
+  currentPiece,
+  currentPosition,
+  isGameOver,
+  aiEnabled,
+}) => {
+  // Create display board with current piece overlaid
+  const getDisplayBoard = () => {
+    const displayBoard = currentBoard.map((row) => [...row]);
+
+    if (currentPiece && currentPosition) {
+      const { x, y } = currentPosition;
+      for (let row = 0; row < currentPiece.shape.length; row++) {
+        for (let col = 0; col < currentPiece.shape[row].length; col++) {
+          if (currentPiece.shape[row][col] !== 0) {
+            const newY = y + row;
+            const newX = x + col;
+            if (
+              newY >= 0 &&
+              newY < BOARD_HEIGHT &&
+              newX >= 0 &&
+              newX < BOARD_WIDTH
+            ) {
+              displayBoard[newY][newX] = currentPiece.color;
+            }
+          }
+        }
+      }
+    }
+
+    return displayBoard;
+  };
+
+  const displayBoard = getDisplayBoard();
+
   return (
-    <div className="inline-block border-2 border-gray-400 bg-black p-2 mx-auto">
-      {currentBoard.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex">
-          {row.map((cell, cellIndex) => (
-            <div
-              key={cellIndex}
-              className={`w-6 h-6 border border-gray-600 ${
-                cell === EmptyCell.Empty ? "bg-gray-900" : getCellColor(cell)
-              }`}
-            >
-              {cell !== EmptyCell.Empty ? "" : ""}
-            </div>
-          ))}
+    <div className="relative">
+      <div
+        className={`grid gap-1 p-4 bg-black border-2 rounded-lg shadow-lg ${
+          aiEnabled ? "border-green-500" : "border-gray-600"
+        }`}
+        style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, 1fr)` }}
+      >
+        {displayBoard.map((row, rowIndex) =>
+          row.map((cell, colIndex) => (
+            <Cell
+              key={`${rowIndex}-${colIndex}`}
+              type={cell}
+              isEmpty={cell === EmptyCell.Empty}
+            />
+          ))
+        )}
+      </div>
+
+      {/* AI Indicator */}
+      {aiEnabled && (
+        <div className="absolute -top-2 -right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+          🤖 AI
         </div>
-      ))}
+      )}
+
+      {isGameOver && (
+        <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center rounded-lg">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-red-500 mb-2">GAME OVER</h2>
+            <p className="text-xl text-white">Press Restart to play again</p>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default Board;
