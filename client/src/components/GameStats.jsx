@@ -15,52 +15,104 @@ const GameStats = ({ score, level, lines, nextPiece }) => {
   };
 
   return (
-    <div className="bg-gray-900 p-6 rounded-lg shadow-lg min-w-48">
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-white mb-2">Score</h3>
-        <p className="text-2xl font-mono text-yellow-400">
-          {score.toLocaleString()}
-        </p>
+    <div className="flex flex-col gap-4">
+      {/* Game Statistics */}
+      <div className="bg-gray-900 p-6 rounded-lg shadow-lg">
+        {/* <h2 className="text-xl font-bold text-white mb-4 text-center border-b border-gray-700 pb-2">
+          Game Stats
+        </h2> */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-300 mb-1">Score</h3>
+            <p className="text-2xl font-mono text-yellow-400 font-bold">
+              {score.toLocaleString()}
+            </p>
+          </div>
+
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-300 mb-1">Level</h3>
+            <p className="text-2xl font-mono text-green-400 font-bold">
+              {level}
+            </p>
+          </div>
+
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-300 mb-1">Lines</h3>
+            <p className="text-2xl font-mono text-blue-400 font-bold">
+              {lines}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-white mb-2">Level</h3>
-        <p className="text-2xl font-mono text-green-400">{level}</p>
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-white mb-2">Lines</h3>
-        <p className="text-2xl font-mono text-blue-400">{lines}</p>
-      </div>
-
+      {/* Next Piece Preview */}
       {nextPiece && (
-        <div className="mb-6">
-          <h3 className="text-lg font-bold text-white mb-2">Next</h3>
-          <div className="bg-gray-800 p-2 rounded">
-            <div
-              className="grid gap-1"
-              style={{ gridTemplateColumns: `repeat(4, 1fr)` }}
-            >
-              {Array(4)
-                .fill(null)
-                .map((_, row) =>
-                  Array(4)
-                    .fill(null)
-                    .map((_, col) => {
-                      const isActive =
-                        nextPiece.shape[row] && nextPiece.shape[row][col];
-                      return (
-                        <div
-                          key={`${row}-${col}`}
-                          className={`w-4 h-4 border border-gray-600 ${
-                            isActive
-                              ? getColorClass(nextPiece.color)
-                              : "bg-gray-800"
-                          }`}
-                        />
-                      );
-                    })
-                )}
+        <div className="bg-gray-900 p-4 rounded-lg shadow-lg">
+          <p className="text-lg font-semibold text-gray-300 mb-2 text-center">
+            Next Piece
+          </p>
+          <div className="bg-gray-800 p-4 rounded-lg border border-gray-600 flex items-center justify-center min-h-24">
+            <div className="relative flex items-center justify-center">
+              {/* Calculate piece bounds for better centering */}
+              {(() => {
+                const shape = nextPiece.shape;
+                const rows = shape.length;
+                const cols = shape[0]?.length || 0;
+
+                // Find the actual bounds of the piece
+                let minRow = rows,
+                  maxRow = -1,
+                  minCol = cols,
+                  maxCol = -1;
+                for (let r = 0; r < rows; r++) {
+                  for (let c = 0; c < cols; c++) {
+                    if (shape[r][c]) {
+                      minRow = Math.min(minRow, r);
+                      maxRow = Math.max(maxRow, r);
+                      minCol = Math.min(minCol, c);
+                      maxCol = Math.max(maxCol, c);
+                    }
+                  }
+                }
+
+                const pieceWidth = maxCol - minCol + 1;
+                const pieceHeight = maxRow - minRow + 1;
+
+                return (
+                  <div
+                    className="grid gap-1"
+                    style={{
+                      gridTemplateColumns: `repeat(${pieceWidth}, 1fr)`,
+                      transform: "scale(1.3)",
+                    }}
+                  >
+                    {Array(pieceHeight)
+                      .fill(null)
+                      .map((_, row) =>
+                        Array(pieceWidth)
+                          .fill(null)
+                          .map((_, col) => {
+                            const actualRow = minRow + row;
+                            const actualCol = minCol + col;
+                            const isActive =
+                              shape[actualRow] && shape[actualRow][actualCol];
+                            return (
+                              <div
+                                key={`${row}-${col}`}
+                                className={`w-5 h-5 rounded-sm transition-all duration-200 ${
+                                  isActive
+                                    ? `${getColorClass(
+                                        nextPiece.color
+                                      )} shadow-lg border border-gray-500 hover:shadow-xl`
+                                    : "bg-transparent"
+                                }`}
+                              />
+                            );
+                          })
+                      )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

@@ -2,9 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Board from "@/components/Board";
 import GameStats from "@/components/GameStats";
 import GameControls from "@/components/GameControls";
-import AIControls from "@/components/AIControls";
 import { BOARD_WIDTH } from "@/types";
-import { TetrisAgent } from "@/utils/tetrisAgent";
 import {
   createEmptyBoard,
   getRandomTetromino,
@@ -16,7 +14,6 @@ import {
   calculateScore,
   isGameOver as checkGameOver,
   getDropSpeed,
-  getAllRotations,
 } from "@/utils/gameLogic";
 
 function Game() {
@@ -31,20 +28,6 @@ function Game() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-
-  // AI state
-  const [aiEnabled, setAiEnabled] = useState(false);
-  const [aiDifficulty, setAiDifficulty] = useState("medium");
-  const [aiSpeed, setAiSpeed] = useState(500);
-  const [aiAgent] = useState(() => new TetrisAgent(aiDifficulty));
-  const [aiStats, setAiStats] = useState({
-    movesMade: 0,
-    averageScore: 0,
-    bestMoveScore: 0,
-    isThinking: false,
-  });
-  const [aiMoveQueue, setAiMoveQueue] = useState([]);
-  const [aiTimeout, setAiTimeout] = useState(null);
 
   // Initialize game
   const initializeGame = useCallback(() => {
@@ -62,8 +45,6 @@ function Game() {
     setIsGameOver(false);
     setIsPaused(false);
     setGameStarted(true);
-    setAiMoveQueue([]);
-    setAiStats((prev) => ({ ...prev, movesMade: 0 }));
   }, []);
 
   // Move piece
@@ -159,132 +140,9 @@ function Game() {
     setCurrentPosition({ x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 });
   }, [board, currentPiece, currentPosition, nextPiece, lines, level]);
 
-  // AI Move execution
-  const executeAiMove = useCallback(() => {
-    if (
-      !aiEnabled ||
-      isGameOver ||
-      isPaused ||
-      !currentPiece ||
-      aiMoveQueue.length === 0
-    ) {
-      return;
-    }
-
-    const move = aiMoveQueue[0];
-    setAiMoveQueue((prev) => prev.slice(1));
-
-    switch (move) {
-      case "left":
-        movePiece(-1, 0);
-        break;
-      case "right":
-        movePiece(1, 0);
-        break;
-      case "rotate":
-        rotatePieceHandler();
-        break;
-      case "drop":
-        hardDrop();
-        break;
-      default:
-        break;
-    }
-
-    // Schedule next move
-    if (aiMoveQueue.length > 1) {
-      const nextTimeout = setTimeout(executeAiMove, 50);
-      setAiTimeout(nextTimeout);
-    }
-  }, [
-    aiEnabled,
-    isGameOver,
-    isPaused,
-    currentPiece,
-    aiMoveQueue,
-    movePiece,
-    rotatePieceHandler,
-    hardDrop,
-  ]);
-
-  // AI decision making
-  useEffect(() => {
-    if (
-      !aiEnabled ||
-      isGameOver ||
-      isPaused ||
-      !currentPiece ||
-      !gameStarted ||
-      aiMoveQueue.length > 0
-    ) {
-      return;
-    }
-
-    setAiStats((prev) => ({ ...prev, isThinking: true }));
-
-    const timeout = setTimeout(() => {
-      const bestMove = aiAgent.getBestMove(board, currentPiece);
-
-      if (bestMove) {
-        const moves = aiAgent.generateMoveSequence(
-          currentPiece,
-          currentPosition,
-          bestMove
-        );
-        setAiMoveQueue(moves);
-
-        setAiStats((prev) => ({
-          ...prev,
-          movesMade: prev.movesMade + 1,
-          bestMoveScore: bestMove.score,
-          averageScore:
-            (prev.averageScore * prev.movesMade + bestMove.score) /
-            (prev.movesMade + 1),
-          isThinking: false,
-        }));
-      } else {
-        setAiStats((prev) => ({ ...prev, isThinking: false }));
-      }
-    }, aiSpeed);
-
-    return () => clearTimeout(timeout);
-  }, [
-    aiEnabled,
-    board,
-    currentPiece,
-    currentPosition,
-    isGameOver,
-    isPaused,
-    gameStarted,
-    aiMoveQueue.length,
-    aiAgent,
-    aiSpeed,
-  ]);
-
-  // Execute AI moves
-  useEffect(() => {
-    if (aiEnabled && aiMoveQueue.length > 0 && !aiTimeout) {
-      const timeout = setTimeout(executeAiMove, 100);
-      setAiTimeout(timeout);
-    }
-
-    return () => {
-      if (aiTimeout) {
-        clearTimeout(aiTimeout);
-        setAiTimeout(null);
-      }
-    };
-  }, [aiEnabled, aiMoveQueue, aiTimeout, executeAiMove]);
-
   // Game loop - drop piece automatically
   useEffect(() => {
-    if (
-      !gameStarted ||
-      isGameOver ||
-      isPaused ||
-      (aiEnabled && aiMoveQueue.length > 0)
-    )
-      return;
+    if (!gameStarted || isGameOver || isPaused) return;
 
     const interval = setInterval(() => {
       const moved = movePiece(0, 1);
@@ -294,21 +152,10 @@ function Game() {
     }, getDropSpeed(level));
 
     return () => clearInterval(interval);
-  }, [
-    gameStarted,
-    isGameOver,
-    isPaused,
-    movePiece,
-    lockPiece,
-    level,
-    aiEnabled,
-    aiMoveQueue.length,
-  ]);
+  }, [gameStarted, isGameOver, isPaused, movePiece, lockPiece, level]);
 
-  // Keyboard controls (only when AI is disabled)
+  // Keyboard controls
   useEffect(() => {
-    if (aiEnabled) return; // Disable human controls when AI is playing
-
     const handleKeyPress = (event) => {
       if (!gameStarted) {
         if (event.key === " " || event.key === "Enter") {
@@ -350,14 +197,7 @@ function Game() {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [
-    gameStarted,
-    movePiece,
-    rotatePieceHandler,
-    hardDrop,
-    initializeGame,
-    aiEnabled,
-  ]);
+  }, [gameStarted, movePiece, rotatePieceHandler, hardDrop, initializeGame]);
 
   // Start game on mount
   useEffect(() => {
@@ -366,16 +206,7 @@ function Game() {
     }
   }, []);
 
-  // Update AI agent when difficulty changes
-  useEffect(() => {
-    aiAgent.setDifficulty(aiDifficulty);
-  }, [aiDifficulty, aiAgent]);
-
   const handleRestart = () => {
-    if (aiTimeout) {
-      clearTimeout(aiTimeout);
-      setAiTimeout(null);
-    }
     initializeGame();
   };
 
@@ -383,31 +214,24 @@ function Game() {
     setIsPaused((prev) => !prev);
   };
 
-  const handleToggleAI = () => {
-    setAiEnabled((prev) => !prev);
-    if (aiTimeout) {
-      clearTimeout(aiTimeout);
-      setAiTimeout(null);
-    }
-    setAiMoveQueue([]);
-  };
-
   return (
     <div className="min-h-screen bg-gray-800 text-white flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl font-bold mb-8 text-red-500">Red Tetris</h1>
+      {/* <h1 className="text-4xl font-bold mb-8 text-red-500">Red Tetris</h1> */}
 
       {!gameStarted && !isGameOver && (
         <div className="text-center mb-8">
-          <p className="text-xl mb-4">
-            {aiEnabled
-              ? "AI is ready to play!"
-              : "Press Space or Enter to start!"}
-          </p>
+          <p className="text-xl mb-4">Press Space or Enter to start!</p>
         </div>
       )}
 
       <div className="flex gap-8 items-start flex-wrap justify-center">
-        <div className="flex flex-col gap-4">
+        <Board
+          currentBoard={board}
+          currentPiece={currentPiece}
+          currentPosition={currentPosition}
+          isGameOver={isGameOver}
+        />
+        <div className="flex flex-col gap-2">
           <GameStats
             score={score}
             level={level}
@@ -422,24 +246,6 @@ function Game() {
             onRestart={handleRestart}
           />
         </div>
-
-        <Board
-          currentBoard={board}
-          currentPiece={currentPiece}
-          currentPosition={currentPosition}
-          isGameOver={isGameOver}
-          aiEnabled={aiEnabled}
-        />
-
-        <AIControls
-          aiEnabled={aiEnabled}
-          aiDifficulty={aiDifficulty}
-          onToggleAI={handleToggleAI}
-          onChangeDifficulty={setAiDifficulty}
-          aiSpeed={aiSpeed}
-          onChangeSpeed={setAiSpeed}
-          aiStats={aiStats}
-        />
       </div>
 
       {isPaused && (

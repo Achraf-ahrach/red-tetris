@@ -2,26 +2,7 @@ import React from "react";
 import Cell from "./Cell";
 import { EmptyCell, BOARD_WIDTH, BOARD_HEIGHT } from "../types";
 
-const getCellColor = (cellType) => {
-  const colors = {
-    I: "bg-cyan-400", // Cyan for I piece
-    J: "bg-blue-500", // Blue for J piece
-    L: "bg-orange-500", // Orange for L piece
-    O: "bg-yellow-400", // Yellow for O piece
-    S: "bg-green-500", // Green for S piece
-    T: "bg-purple-500", // Purple for T piece
-    Z: "bg-red-500", // Red for Z piece
-  };
-  return colors[cellType] || "bg-gray-500";
-};
-
-const Board = ({
-  currentBoard,
-  currentPiece,
-  currentPosition,
-  isGameOver,
-  aiEnabled,
-}) => {
+const Board = ({ currentBoard, currentPiece, currentPosition, isGameOver }) => {
   // Create display board with current piece overlaid
   const getDisplayBoard = () => {
     const displayBoard = currentBoard.map((row) => [...row]);
@@ -54,9 +35,7 @@ const Board = ({
   return (
     <div className="relative">
       <div
-        className={`grid gap-1 p-4 bg-black border-2 rounded-lg shadow-lg ${
-          aiEnabled ? "border-green-500" : "border-gray-600"
-        }`}
+        className="grid gap-1 p-4 bg-black border-2 border-gray-600 rounded-lg shadow-lg"
         style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, 1fr)` }}
       >
         {displayBoard.map((row, rowIndex) =>
@@ -69,13 +48,6 @@ const Board = ({
           ))
         )}
       </div>
-
-      {/* AI Indicator */}
-      {aiEnabled && (
-        <div className="absolute -top-2 -right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-          🤖 AI
-        </div>
-      )}
 
       {isGameOver && (
         <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center rounded-lg">

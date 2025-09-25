@@ -19,7 +19,7 @@ function Cell({ type, isEmpty }) {
 
   return (
     <div
-      className={`w-6 h-6 border border-gray-600 ${getCellColor(
+      className={`w-8 h-8 border border-gray-600 ${getCellColor(
         type
       )} transition-colors duration-150`}
     />
