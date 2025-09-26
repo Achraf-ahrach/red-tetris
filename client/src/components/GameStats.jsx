@@ -17,28 +17,25 @@ const GameStats = ({ score, level, lines, nextPiece }) => {
   return (
     <div className="flex flex-col gap-4">
       {/* Game Statistics */}
-      <div className="bg-gray-900 p-6 rounded-lg shadow-lg">
-        {/* <h2 className="text-xl font-bold text-white mb-4 text-center border-b border-gray-700 pb-2">
-          Game Stats
-        </h2> */}
+      <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-white/20">
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-300 mb-1">Score</h3>
-            <p className="text-2xl font-mono text-yellow-400 font-bold">
+            <p className="text-2xl font-mono text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400 font-bold">
               {score.toLocaleString()}
             </p>
           </div>
 
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-300 mb-1">Level</h3>
-            <p className="text-2xl font-mono text-green-400 font-bold">
+            <p className="text-2xl font-mono text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400 font-bold">
               {level}
             </p>
           </div>
 
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-300 mb-1">Lines</h3>
-            <p className="text-2xl font-mono text-blue-400 font-bold">
+            <p className="text-2xl font-mono text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 font-bold">
               {lines}
             </p>
           </div>
@@ -47,11 +44,11 @@ const GameStats = ({ score, level, lines, nextPiece }) => {
 
       {/* Next Piece Preview */}
       {nextPiece && (
-        <div className="bg-gray-900 p-4 rounded-lg shadow-lg">
+        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl shadow-2xl border border-white/20">
           <p className="text-lg font-semibold text-gray-300 mb-2 text-center">
             Next Piece
           </p>
-          <div className="bg-gray-800 p-4 rounded-lg border border-gray-600 flex items-center justify-center min-h-24">
+          <div className="bg-black/20 backdrop-blur-sm p-4 rounded-lg border border-white/10 flex items-center justify-center min-h-24">
             <div className="relative flex items-center justify-center">
               {/* Calculate piece bounds for better centering */}
               {(() => {
@@ -103,7 +100,7 @@ const GameStats = ({ score, level, lines, nextPiece }) => {
                                   isActive
                                     ? `${getColorClass(
                                         nextPiece.color
-                                      )} shadow-lg border border-gray-500 hover:shadow-xl`
+                                      )} shadow-lg border border-white/20 hover:shadow-xl`
                                     : "bg-transparent"
                                 }`}
                               />

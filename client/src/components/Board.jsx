@@ -35,7 +35,7 @@ const Board = ({ currentBoard, currentPiece, currentPosition, isGameOver }) => {
   return (
     <div className="relative">
       <div
-        className="grid gap-1 p-4 bg-black border-2 border-gray-600 rounded-lg shadow-lg"
+        className="grid gap-1 p-6 bg-black/40 backdrop-blur-sm border border-white/20 rounded-xl shadow-2xl"
         style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, 1fr)` }}
       >
         {displayBoard.map((row, rowIndex) =>
@@ -50,10 +50,12 @@ const Board = ({ currentBoard, currentPiece, currentPosition, isGameOver }) => {
       </div>
 
       {isGameOver && (
-        <div className="absolute inset-0 bg-black/70 bg-opacity-75 flex items-center justify-center rounded-lg">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold text-red-500 mb-2">GAME OVER</h2>
-            <p className="text-xl text-white">Press Restart to play again</p>
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-xl">
+          <div className="text-center bg-white/10 backdrop-blur-md p-8 rounded-xl border border-white/20">
+            <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-400 mb-4">
+              GAME OVER
+            </h2>
+            <p className="text-xl text-gray-300">Press Restart to play again</p>
           </div>
         </div>
       )}

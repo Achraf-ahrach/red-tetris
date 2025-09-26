@@ -8,44 +8,80 @@ const GameControls = ({
   onRestart,
 }) => {
   return (
-    <div className="flex flex-col gap-8 pt-4">
+    <div className="flex flex-col gap-6 pt-4">
       <div>
-        <div className="flex gap-2 justify-center">
+        <div className="flex gap-3 justify-center">
           {isGameOver ? (
             <button
               onClick={onRestart}
-              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+              className="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105 hover:from-green-600 hover:to-emerald-700"
             >
-              New Game
+              <span className="relative z-10">New Game</span>
+              <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
           ) : (
             <>
               <button
                 onClick={onPause}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                className="group relative px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
               >
-                {isPaused ? "Resume" : "Pause"}
+                <span className="relative z-10">
+                  {isPaused ? "Resume" : "Pause"}
+                </span>
+                <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
               <button
                 onClick={onRestart}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                className="group relative px-4 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-red-500/25 transition-all duration-300 transform hover:scale-105"
               >
-                Restart
+                <span className="relative z-10">Restart</span>
+                <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             </>
           )}
         </div>
       </div>
-      <div className="flex flex-col p-6 bg-gray-900 rounded-lg shadow-lg">
-        <h3 className="text-lg font-bold text-white mb-2">Controls</h3>
-        <div className="mt-4 text-sm text-gray-300">
-          <p className="font-semibold mb-2">Keys:</p>
-          <div className="space-y-1">
-            <p>← → Move</p>
-            <p>↑ Rotate</p>
-            <p>↓ Soft Drop</p>
-            <p>Space Hard Drop</p>
-            <p>P Pause</p>
+
+      <div className="flex flex-col p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-2xl border border-white/20">
+        <h3 className="text-lg font-bold text-white mb-4 text-center">
+          Controls
+        </h3>
+        <div className="text-sm text-gray-300">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">Move:</span>
+                <span className="font-mono bg-white/10 px-2 py-1 rounded text-xs">
+                  ← →
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">Rotate:</span>
+                <span className="font-mono bg-white/10 px-2 py-1 rounded text-xs">
+                  ↑
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">Soft Drop:</span>
+                <span className="font-mono bg-white/10 px-2 py-1 rounded text-xs">
+                  ↓
+                </span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">Hard Drop:</span>
+                <span className="font-mono bg-white/10 px-2 py-1 rounded text-xs">
+                  Space
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">Pause:</span>
+                <span className="font-mono bg-white/10 px-2 py-1 rounded text-xs">
+                  P
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

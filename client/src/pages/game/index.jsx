@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import Board from "@/components/Board";
 import GameStats from "@/components/GameStats";
 import GameControls from "@/components/GameControls";
@@ -17,6 +18,8 @@ import {
 } from "@/utils/gameLogic";
 
 function Game() {
+  const navigate = useNavigate();
+
   // Game state
   const [board, setBoard] = useState(createEmptyBoard);
   const [currentPiece, setCurrentPiece] = useState(null);
@@ -215,47 +218,71 @@ function Game() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-800 text-white flex flex-col items-center justify-center p-4">
-      {/* <h1 className="text-4xl font-bold mb-8 text-red-500">Red Tetris</h1> */}
-
-      {!gameStarted && !isGameOver && (
-        <div className="text-center mb-8">
-          <p className="text-xl mb-4">Press Space or Enter to start!</p>
-        </div>
-      )}
-
-      <div className="flex gap-8 items-start flex-wrap justify-center">
-        <Board
-          currentBoard={board}
-          currentPiece={currentPiece}
-          currentPosition={currentPosition}
-          isGameOver={isGameOver}
-        />
-        <div className="flex flex-col gap-2">
-          <GameStats
-            score={score}
-            level={level}
-            lines={lines}
-            nextPiece={nextPiece}
-          />
-          <GameControls
-            isGameOver={isGameOver}
-            isPaused={isPaused}
-            onStart={initializeGame}
-            onPause={handlePause}
-            onRestart={handleRestart}
-          />
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-black/20">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent"></div>
         </div>
       </div>
 
-      {isPaused && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-gray-900 p-8 rounded-lg text-center">
-            <h2 className="text-3xl font-bold mb-4">PAUSED</h2>
-            <p>Press P to resume</p>
+      <div className="relative z-10 min-h-screen text-white flex flex-col items-center justify-center p-4">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-6 left-6 group flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-lg hover:bg-white/20 transition-all duration-300 border border-white/20"
+        >
+          <span className="text-lg">←</span>
+          <span>Back to Home</span>
+        </button>
+
+        {/* Game Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 mb-4">
+            RED TETRIS
+          </h1>
+          {!gameStarted && !isGameOver && (
+            <p className="text-xl mb-4 text-gray-300">
+              Press Space or Enter to start!
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-8 items-start flex-wrap justify-center">
+          <Board
+            currentBoard={board}
+            currentPiece={currentPiece}
+            currentPosition={currentPosition}
+            isGameOver={isGameOver}
+          />
+          <div className="flex flex-col gap-4">
+            <GameStats
+              score={score}
+              level={level}
+              lines={lines}
+              nextPiece={nextPiece}
+            />
+            <GameControls
+              isGameOver={isGameOver}
+              isPaused={isPaused}
+              onStart={initializeGame}
+              onPause={handlePause}
+              onRestart={handleRestart}
+            />
           </div>
         </div>
-      )}
+
+        {isPaused && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl text-center border border-white/20 shadow-2xl">
+              <h2 className="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                PAUSED
+              </h2>
+              <p className="text-gray-300">Press P to resume</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
