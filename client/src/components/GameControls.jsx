@@ -16,7 +16,10 @@ const GameControls = ({
               onClick={onRestart}
               className="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105 hover:from-green-600 hover:to-emerald-700"
             >
-              <span className="relative z-10">New Game</span>
+              <span className="relative z-10 flex items-center gap-2">
+                <span className="text-lg">🎮</span>
+                New Game
+              </span>
               <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
           ) : (
@@ -25,7 +28,8 @@ const GameControls = ({
                 onClick={onPause}
                 className="group relative px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
               >
-                <span className="relative z-10">
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="text-lg">{isPaused ? "▶️" : "⏸️"}</span>
                   {isPaused ? "Resume" : "Pause"}
                 </span>
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -34,7 +38,10 @@ const GameControls = ({
                 onClick={onRestart}
                 className="group relative px-4 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-red-500/25 transition-all duration-300 transform hover:scale-105"
               >
-                <span className="relative z-10">Restart</span>
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="text-lg">🔄</span>
+                  Restart
+                </span>
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             </>
