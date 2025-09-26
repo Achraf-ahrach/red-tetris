@@ -50,7 +50,7 @@ const Board = ({ currentBoard, currentPiece, currentPosition, isGameOver }) => {
       </div>
 
       {isGameOver && (
-        <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center rounded-lg">
+        <div className="absolute inset-0 bg-black/70 bg-opacity-75 flex items-center justify-center rounded-lg">
           <div className="text-center">
             <h2 className="text-4xl font-bold text-red-500 mb-2">GAME OVER</h2>
             <p className="text-xl text-white">Press Restart to play again</p>
