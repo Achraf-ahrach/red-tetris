@@ -30,7 +30,7 @@ const LandingPage = () => {
         </div>
 
         {/* Game Preview */}
-        <div className="mb-12">
+        <div className="mb-10">
           <div className="inline-block p-4 bg-black/40 rounded-lg backdrop-blur-sm">
             <div className="grid grid-cols-4 gap-1 w-24 h-24">
               {[...Array(16)].map((_, i) => (
@@ -48,12 +48,20 @@ const LandingPage = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-4 mb-12">
+        <div className="space-y-4 space-x-4 mb-12">
           <button
             onClick={startGame}
             className="group relative px-12 py-4 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xl font-bold rounded-xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 transform hover:scale-105 hover:from-red-600 hover:to-pink-700"
           >
-            <span className="relative z-10">START GAME</span>
+            <span className="relative z-10">🎮 SINGLE PLAYER</span>
+            <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </button>
+
+          <button
+            onClick={() => navigate("/lobby")}
+            className="group relative px-12 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xl font-bold rounded-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 hover:from-blue-600 hover:to-indigo-700"
+          >
+            <span className="relative z-10">🌐 MULTIPLAYER</span>
             <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>
 
