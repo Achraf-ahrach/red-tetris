@@ -58,7 +58,7 @@ const LandingPage = () => {
           </button>
 
           <button
-            onClick={() => navigate("/lobby")}
+            onClick={() => navigate("/multiplayer")}
             className="group relative px-12 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xl font-bold rounded-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 hover:from-blue-600 hover:to-indigo-700"
           >
             <span className="relative z-10">🌐 MULTIPLAYER</span>
