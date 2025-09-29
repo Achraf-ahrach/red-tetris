@@ -61,13 +61,9 @@ const MultiplayerSetup = () => {
     setRoomNameError("");
     setIsCreatingRoom(true);
 
-    // Simulate room creation delay
+    // http://<server_name_or_ip>:<port>/#<room_name>[<player_name>]
     setTimeout(() => {
-      navigate(
-        `/multiplayer-game?room=${encodeURIComponent(
-          roomName
-        )}&player=${encodeURIComponent(playerName)}&host=true`
-      );
+      navigate(`/#${roomName}[${playerName}]`);
     }, 1000);
   };
 
