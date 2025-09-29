@@ -1,6 +1,6 @@
 import React from "react";
 import Cell from "./Cell";
-import { EmptyCell, BOARD_WIDTH, BOARD_HEIGHT } from "../types";
+import { EmptyCell, BOARD_WIDTH, BOARD_HEIGHT } from "../../types";
 
 const Board = ({ currentBoard, currentPiece, currentPosition, isGameOver }) => {
   // Create display board with current piece overlaid

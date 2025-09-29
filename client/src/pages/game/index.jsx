@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import Board from "@/components/Board";
-import GameStats from "@/components/GameStats";
-import GameControls from "@/components/GameControls";
+import Board from "@/components/game/Board";
+import GameStats from "@/components/game/GameStats";
+import GameControls from "@/components/game/GameControls";
 import { BOARD_WIDTH } from "@/types";
 import {
   createEmptyBoard,
