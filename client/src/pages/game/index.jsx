@@ -15,7 +15,7 @@ import {
   calculateScore,
   isGameOver as checkGameOver,
   getDropSpeed,
-} from "@/utils/gameLogic";
+} from "@/pages/game/gameLogic";
 
 function Game() {
   const navigate = useNavigate();

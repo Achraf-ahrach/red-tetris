@@ -5,7 +5,7 @@ import {
   BOARD_WIDTH,
   BOARD_HEIGHT,
   POINTS,
-} from "../types";
+} from "../../types";
 
 // Create empty board
 export const createEmptyBoard = () => {
@@ -43,12 +43,10 @@ export const isValidMove = (board, piece, position) => {
         const newX = x + col;
         const newY = y + row;
 
-        // Check boundaries
         if (newX < 0 || newX >= BOARD_WIDTH || newY >= BOARD_HEIGHT) {
           return false;
         }
 
-        // Check collision with existing pieces
         if (newY >= 0 && board[newY][newX] !== EmptyCell.Empty) {
           return false;
         }
