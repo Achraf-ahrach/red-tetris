@@ -6,6 +6,7 @@ const MultiplayerSetup = () => {
   const [roomName, setRoomName] = useState("");
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
+  const [roomNameError, setRoomNameError] = useState("");
   const playerName = "Achraf_test"; // [<player_name>]
 
   // Mock rooms for demonstration - in real app this would come from server
@@ -53,10 +54,11 @@ const MultiplayerSetup = () => {
 
   const createRoom = () => {
     if (!roomName.trim()) {
-      alert("Please enter a room name!");
+      setRoomNameError("Please enter a room name!");
       return;
     }
 
+    setRoomNameError("");
     setIsCreatingRoom(true);
 
     // Simulate room creation delay
@@ -131,12 +133,25 @@ const MultiplayerSetup = () => {
                   <input
                     type="text"
                     value={roomName}
-                    onChange={(e) => setRoomName(e.target.value)}
+                    onChange={(e) => {
+                      setRoomName(e.target.value);
+                      if (roomNameError) setRoomNameError("");
+                    }}
                     placeholder="Enter room name..."
-                    className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                    className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-300 ${
+                      roomNameError
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-white/20 focus:ring-green-500"
+                    }`}
                     maxLength={30}
                     disabled={isCreatingRoom}
                   />
+                  {roomNameError && (
+                    <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
+                      <span>⚠️</span>
+                      {roomNameError}
+                    </p>
+                  )}
                 </div>
 
                 <button
