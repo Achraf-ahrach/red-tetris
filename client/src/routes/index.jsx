@@ -1,5 +1,9 @@
 import LandingPage from "@/pages/landing";
 import { createBrowserRouter } from "react-router-dom";
+import Game from "@/pages/game";
+import MultiplayerSetup from "@/pages/multiplayer";
+import MultiplayerGame from "@/pages/multiplayer-game";
+import { Navigate } from "react-router-dom";
 
 const router = createBrowserRouter([
   {
@@ -20,7 +24,7 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <Navigate to="/" />,
+    element: <Navigate to="/" replace />,
   },
 ]);
 

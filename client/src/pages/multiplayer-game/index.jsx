@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Board from "@/components/Board";
-import GameStats from "@/components/GameStats";
+import Board from "@/components/game/Board";
+import GameStats from "@/components/game/GameStats";
 import { BOARD_WIDTH } from "@/types";
 import {
   createEmptyBoard,
@@ -19,10 +19,10 @@ import {
 function MultiplayerGame() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
-  const roomCode = searchParams.get('room');
-  const playerName = searchParams.get('player');
-  const isHost = searchParams.get('host') === 'true';
+
+  const roomCode = searchParams.get("room");
+  const playerName = searchParams.get("player");
+  const isHost = searchParams.get("host") === "true";
 
   // Player 1 (local player) state
   const [p1Board, setP1Board] = useState(createEmptyBoard);
@@ -113,7 +113,14 @@ function MultiplayerGame() {
       }
       return false;
     },
-    [p1Board, p1CurrentPiece, p1CurrentPosition, p1GameOver, isPaused, gameWinner]
+    [
+      p1Board,
+      p1CurrentPiece,
+      p1CurrentPosition,
+      p1GameOver,
+      isPaused,
+      gameWinner,
+    ]
   );
 
   // Player 1 rotation
@@ -125,7 +132,14 @@ function MultiplayerGame() {
     if (isValidMove(p1Board, rotatedShape, p1CurrentPosition)) {
       setP1CurrentPiece((prev) => ({ ...prev, shape: rotatedShape }));
     }
-  }, [p1Board, p1CurrentPiece, p1CurrentPosition, p1GameOver, isPaused, gameWinner]);
+  }, [
+    p1Board,
+    p1CurrentPiece,
+    p1CurrentPosition,
+    p1GameOver,
+    isPaused,
+    gameWinner,
+  ]);
 
   // Player 1 hard drop
   const hardDropP1 = useCallback(() => {
@@ -146,7 +160,14 @@ function MultiplayerGame() {
 
     setP1CurrentPosition((prev) => ({ ...prev, y: newY }));
     setP1Score((prev) => prev + dropDistance * 2);
-  }, [p1Board, p1CurrentPiece, p1CurrentPosition, p1GameOver, isPaused, gameWinner]);
+  }, [
+    p1Board,
+    p1CurrentPiece,
+    p1CurrentPosition,
+    p1GameOver,
+    isPaused,
+    gameWinner,
+  ]);
 
   // Lock piece for Player 1
   const lockP1Piece = useCallback(() => {
@@ -188,49 +209,57 @@ function MultiplayerGame() {
     setP1CurrentPiece(newPiece);
     setP1NextPiece(nextNewPiece);
     setP1CurrentPosition({ x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 });
-  }, [p1Board, p1CurrentPiece, p1CurrentPosition, p1NextPiece, p1Lines, p1Level, opponent]);
+  }, [
+    p1Board,
+    p1CurrentPiece,
+    p1CurrentPosition,
+    p1NextPiece,
+    p1Lines,
+    p1Level,
+    opponent,
+  ]);
 
   // Simulate Player 2 (opponent) gameplay
   const simulateP2Move = useCallback(() => {
     if (!p2CurrentPiece || p2GameOver || gameWinner) return;
 
     // Simple AI: move randomly or drop
-    const actions = ['left', 'right', 'down', 'rotate', 'drop'];
+    const actions = ["left", "right", "down", "rotate", "drop"];
     const randomAction = actions[Math.floor(Math.random() * actions.length)];
 
     let moved = false;
     const newPosition = { ...p2CurrentPosition };
 
     switch (randomAction) {
-      case 'left':
+      case "left":
         newPosition.x -= 1;
         if (isValidMove(p2Board, p2CurrentPiece.shape, newPosition)) {
           setP2CurrentPosition(newPosition);
           moved = true;
         }
         break;
-      case 'right':
+      case "right":
         newPosition.x += 1;
         if (isValidMove(p2Board, p2CurrentPiece.shape, newPosition)) {
           setP2CurrentPosition(newPosition);
           moved = true;
         }
         break;
-      case 'down':
+      case "down":
         newPosition.y += 1;
         if (isValidMove(p2Board, p2CurrentPiece.shape, newPosition)) {
           setP2CurrentPosition(newPosition);
           moved = true;
         }
         break;
-      case 'rotate':
+      case "rotate":
         const rotatedShape = rotatePiece(p2CurrentPiece.shape);
         if (isValidMove(p2Board, rotatedShape, p2CurrentPosition)) {
           setP2CurrentPiece((prev) => ({ ...prev, shape: rotatedShape }));
           moved = true;
         }
         break;
-      case 'drop':
+      case "drop":
         // Auto drop handled by game loop
         break;
     }
@@ -280,7 +309,17 @@ function MultiplayerGame() {
         setP2CurrentPosition({ x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 });
       }
     }
-  }, [p2Board, p2CurrentPiece, p2CurrentPosition, p2NextPiece, p2Lines, p2Level, p2GameOver, gameWinner, playerName]);
+  }, [
+    p2Board,
+    p2CurrentPiece,
+    p2CurrentPosition,
+    p2NextPiece,
+    p2Lines,
+    p2Level,
+    p2GameOver,
+    gameWinner,
+    playerName,
+  ]);
 
   // Game loops
   useEffect(() => {
@@ -294,18 +333,35 @@ function MultiplayerGame() {
     }, getDropSpeed(p1Level));
 
     return () => clearInterval(interval);
-  }, [gameStarted, p1GameOver, isPaused, moveP1Piece, lockP1Piece, p1Level, gameWinner]);
+  }, [
+    gameStarted,
+    p1GameOver,
+    isPaused,
+    moveP1Piece,
+    lockP1Piece,
+    p1Level,
+    gameWinner,
+  ]);
 
   // Player 2 simulation loop
   useEffect(() => {
-    if (!gameStarted || p2GameOver || isPaused || !opponent || gameWinner) return;
+    if (!gameStarted || p2GameOver || isPaused || !opponent || gameWinner)
+      return;
 
     const interval = setInterval(() => {
       simulateP2Move();
     }, getDropSpeed(p2Level) * 0.8); // Slightly faster for variation
 
     return () => clearInterval(interval);
-  }, [gameStarted, p2GameOver, isPaused, simulateP2Move, p2Level, opponent, gameWinner]);
+  }, [
+    gameStarted,
+    p2GameOver,
+    isPaused,
+    simulateP2Move,
+    p2Level,
+    opponent,
+    gameWinner,
+  ]);
 
   // Keyboard controls
   useEffect(() => {
@@ -384,7 +440,9 @@ function MultiplayerGame() {
             <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
               MULTIPLAYER BATTLE
             </h1>
-            <p className="text-gray-300 mt-1">Room: <span className="font-bold">{roomCode}</span></p>
+            <p className="text-gray-300 mt-1">
+              Room: <span className="font-bold">{roomCode}</span>
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -404,8 +462,13 @@ function MultiplayerGame() {
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl text-center border border-white/20 shadow-2xl">
               <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-              <h2 className="text-2xl font-bold mb-2">Waiting for Opponent...</h2>
-              <p className="text-gray-300">Share room code: <span className="font-bold text-blue-400">{roomCode}</span></p>
+              <h2 className="text-2xl font-bold mb-2">
+                Waiting for Opponent...
+              </h2>
+              <p className="text-gray-300">
+                Share room code:{" "}
+                <span className="font-bold text-blue-400">{roomCode}</span>
+              </p>
             </div>
           </div>
         )}
@@ -432,7 +495,9 @@ function MultiplayerGame() {
                   <h2 className="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
                     {gameWinner === playerName ? "🏆 YOU WIN!" : "💔 YOU LOSE!"}
                   </h2>
-                  <p className="text-gray-300 mb-4">Winner: <span className="font-bold">{gameWinner}</span></p>
+                  <p className="text-gray-300 mb-4">
+                    Winner: <span className="font-bold">{gameWinner}</span>
+                  </p>
                   <button
                     onClick={handleRestart}
                     className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
@@ -448,7 +513,9 @@ function MultiplayerGame() {
               {/* Player 1 (You) */}
               <div className="flex flex-col items-center">
                 <div className="mb-4 text-center">
-                  <h3 className="text-2xl font-bold text-blue-400 mb-1">👤 {playerName}</h3>
+                  <h3 className="text-2xl font-bold text-blue-400 mb-1">
+                    👤 {playerName}
+                  </h3>
                   <p className="text-sm text-gray-400">YOU</p>
                 </div>
                 <div className="flex gap-4">
@@ -477,7 +544,9 @@ function MultiplayerGame() {
               {/* Player 2 (Opponent) */}
               <div className="flex flex-col items-center">
                 <div className="mb-4 text-center">
-                  <h3 className="text-2xl font-bold text-red-400 mb-1">🤖 {opponent.name}</h3>
+                  <h3 className="text-2xl font-bold text-red-400 mb-1">
+                    🤖 {opponent.name}
+                  </h3>
                   <p className="text-sm text-gray-400">OPPONENT</p>
                 </div>
                 <div className="flex gap-4">
@@ -502,7 +571,8 @@ function MultiplayerGame() {
               <div className="mt-8 text-center">
                 <div className="bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10 inline-block">
                   <p className="text-sm text-gray-300">
-                    <strong>Controls:</strong> Arrow Keys to move • Space for hard drop • P to pause
+                    <strong>Controls:</strong> Arrow Keys to move • Space for
+                    hard drop • P to pause
                   </p>
                 </div>
               </div>
