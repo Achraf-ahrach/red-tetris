@@ -4,432 +4,362 @@
 import { motion, useScroll, useTransform, useInView } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Play } from "lucide-react"
+import { Play, ChevronLeft, ChevronRight } from "lucide-react"
 import { useRef, useEffect, useState } from "react"
 
-const FixedViewportCarousel = ({ children }) => {
+// Enhanced game mode card component for carousel
+const GameModeCard = ({ title, description, image, color }) => {
   return (
-    <div className="relative">
-      <style jsx global>{`
-        html {
-          scroll-snap-type: y proximity;
-          scroll-behavior: smooth;
-        }
+    <motion.div
+      className="group relative min-w-0 flex-shrink-0 w-full"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+      whileHover={{ y: -8, transition: { duration: 0.3 } }}
+    >
+      {/* Card container */}
+      <div className="relative bg-card/60 backdrop-blur-md border border-border/50 rounded-3xl p-6 hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/15 overflow-hidden h-full">
+        {/* Enhanced background glow */}
+        <div 
+          className="absolute inset-0 opacity-0 group-hover:opacity-25 transition-opacity duration-700 blur-2xl"
+          style={{ 
+            background: `radial-gradient(circle at center, ${color}50 0%, ${color}20 40%, transparent 70%)` 
+          }}
+        />
         
-        @media (prefers-reduced-motion: reduce) {
-          html {
-            scroll-behavior: auto;
-          }
-        }
-      `}</style>
-      <div className="h-[1800vh] relative">
-        <div className="sticky top-0 h-screen overflow-hidden">
-          {children}
+        {/* Subtle gradient overlay */}
+        <div 
+          className="absolute inset-0 opacity-10 rounded-3xl"
+          style={{ 
+            background: `linear-gradient(135deg, ${color}30 0%, transparent 50%, ${color}20 100%)` 
+          }}
+        />
+        
+        {/* Content */}
+        <div className="relative z-10 text-center h-full flex flex-col">
+          {/* Enhanced Icon */}
+          <motion.div
+            className="text-5xl mb-4 relative inline-block"
+            whileHover={{ 
+              scale: 1.1,
+              rotate: [0, -5, 5, 0],
+            }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            {/* Multi-layered glow */}
+            <div 
+              className="absolute inset-0 rounded-full blur-xl opacity-50"
+              style={{ background: `${color}80` }}
+            />
+            <div 
+              className="absolute inset-0 rounded-full blur-lg opacity-30"
+              style={{ background: `${color}` }}
+            />
+            <div className="relative z-10 drop-shadow-lg">{image}</div>
+          </motion.div>
+
+          {/* Enhanced Title */}
+          <h3 
+            className="text-xl font-bold mb-3 group-hover:scale-105 transition-all duration-300"
+            style={{ 
+              color: color
+            }}
+          >
+            {title}
+          </h3>
+
+          {/* Enhanced Description */}
+          <p className="text-muted-foreground/90 leading-relaxed mb-6 text-sm font-light group-hover:text-muted-foreground transition-colors duration-300 flex-grow">
+            {description}
+          </p>
+
+          {/* Enhanced Button */}
+          <Button 
+            size="sm"
+            className="px-6 py-2 font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 group relative overflow-hidden w-full"
+            style={{ 
+              backgroundColor: `${color}15`,
+              borderColor: `${color}40`,
+              color: color
+            }}
+          >
+            {/* Button glow effect */}
+            <div 
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"
+              style={{ background: `${color}20` }}
+            />
+            <div className="relative z-10 flex items-center gap-2 justify-center">
+              <Play className="w-4 h-4" />
+              <span>Play Now</span>
+            </div>
+          </Button>
         </div>
       </div>
+    </motion.div>
+  )
+}
+
+// Horizontal Carousel Component - Multiple Cards View
+const HorizontalCarousel = ({ children, totalItems }) => {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const containerRef = useRef(null)
+  
+  // Responsive cards per view
+  const [cardsPerView, setCardsPerView] = useState(3)
+  const maxIndex = Math.max(0, totalItems - cardsPerView)
+
+  // Update cards per view based on screen size
+  useEffect(() => {
+    const updateCardsPerView = () => {
+      if (window.innerWidth < 768) {
+        setCardsPerView(1) // Mobile: 1 card
+      } else if (window.innerWidth < 1024) {
+        setCardsPerView(2) // Tablet: 2 cards
+      } else {
+        setCardsPerView(3) // Desktop: 3 cards
+      }
+    }
+
+    updateCardsPerView()
+    window.addEventListener('resize', updateCardsPerView)
+    return () => window.removeEventListener('resize', updateCardsPerView)
+  }, [])
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (!isAutoPlaying || maxIndex === 0) return
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => {
+        const next = prev + 1
+        return next > maxIndex ? 0 : next
+      })
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [isAutoPlaying, maxIndex])
+
+  const goToSlide = (index) => {
+    setCurrentIndex(Math.min(index, maxIndex))
+    setIsAutoPlaying(false)
+    setTimeout(() => setIsAutoPlaying(true), 8000)
+  }
+
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => Math.max(0, prev - 1))
+    setIsAutoPlaying(false)
+    setTimeout(() => setIsAutoPlaying(true), 8000)
+  }
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1))
+    setIsAutoPlaying(false)
+    setTimeout(() => setIsAutoPlaying(true), 8000)
+  }
+
+  // Calculate the transform percentage
+  const translateX = -(currentIndex * (100 / cardsPerView))
+
+  return (
+    <div className="relative max-w-7xl mx-auto">
+      {/* Carousel Container */}
+      <div 
+        ref={containerRef}
+        className="overflow-hidden rounded-2xl"
+        onMouseEnter={() => setIsAutoPlaying(false)}
+        onMouseLeave={() => setIsAutoPlaying(true)}
+      >
+        <motion.div
+          className="flex gap-6"
+          animate={{ x: `${translateX}%` }}
+          transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+          style={{ width: `${(totalItems / cardsPerView) * 100}%` }}
+        >
+          {children}
+        </motion.div>
+      </div>
+
+      {/* Navigation Arrows - Only show if there are more cards than visible */}
+      {maxIndex > 0 && (
+        <>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 shadow-lg"
+            onClick={goToPrevious}
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 shadow-lg"
+            onClick={goToNext}
+            disabled={currentIndex === maxIndex}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </Button>
+        </>
+      )}
+
+      {/* Dot Indicators - Only show if there are multiple slides */}
+      {maxIndex > 0 && (
+        <div className="flex justify-center gap-2 mt-8">
+          {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? 'bg-primary scale-150 shadow-lg'
+                  : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Progress Bar */}
+      {maxIndex > 0 && (
+        <div className="mt-4 h-1 bg-muted-foreground/20 rounded-full overflow-hidden max-w-md mx-auto">
+          <motion.div
+            className="h-full bg-primary rounded-full"
+            animate={{ width: `${((currentIndex / maxIndex) * 100)}%` }}
+            transition={{ duration: 0.4 }}
+          />
+        </div>
+      )}
     </div>
   )
 }
 
-const FixedGameCard = ({
-  title,
-  description,
-  image,
-  color,
-  backgroundImage,
-  index,
-  totalCards,
-  globalScrollProgress,
-  carouselStarted,
-}) => {
-  // Calculate when this card should be visible
-  const cardStart = index / totalCards
-  const cardEnd = (index + 1) / totalCards
-  
-  // Card visibility - only show when it's this card's time AND carousel has started
-  const isActive = useTransform(
-    globalScrollProgress,
-    [cardStart, cardEnd],
-    [0, 1],
-    { clamp: false }
-  )
-  
-  // Check if this is the last card
-  const isLastCard = index === totalCards - 1
-  
-  // Enhanced transitions that only work when carousel is active
-  // Ultra-smooth opacity transitions with better easing curves
-  const opacity = useTransform(
-    globalScrollProgress,
-    [cardStart - 0.06, cardStart - 0.02, cardStart - 0.005, cardStart + 0.005, cardEnd - 0.005, cardEnd + 0.02, cardEnd + 0.06],
-    carouselStarted ? [0, 0.1, 0.7, 1, 1, isLastCard ? 1 : 0.1, isLastCard ? 1 : 0] : [0, 0, 0, 0, 0, 0, 0]
-  )
-  
-  // Smoother entrance from bottom with better curve
-  const y = useTransform(
-    globalScrollProgress,
-    [cardStart - 0.06, cardStart - 0.025, cardStart - 0.01, cardStart - 0.002, cardStart + 0.002, cardEnd - 0.01, cardEnd + 0.04],
-    carouselStarted ? [120, 60, 25, 8, 0, 0, isLastCard ? 0 : 0] : [0, 0, 0, 0, 0, 0, 0]
-  )
-  
-  // Horizontal slide - smoother exit to left (only if not last card)
-  const x = useTransform(
-    globalScrollProgress,
-    [cardStart - 0.05, cardStart - 0.01, cardStart + 0.01, cardEnd - 0.04, cardEnd - 0.015, cardEnd - 0.005, cardEnd + 0.02],
-    carouselStarted ? [0, 0, 0, 0, isLastCard ? 0 : -50, isLastCard ? 0 : -150, isLastCard ? 0 : -300] : [0, 0, 0, 0, 0, 0, 0]
-  )
-  
-  // Gentler scale transitions with premium feel
-  const scale = useTransform(
-    globalScrollProgress,
-    [cardStart - 0.05, cardStart - 0.02, cardStart - 0.005, cardStart + 0.005, cardEnd - 0.02, cardEnd + 0.02],
-    carouselStarted ? [0.85, 0.95, 0.99, 1, isLastCard ? 1 : 0.9, isLastCard ? 1 : 0.7] : [1, 1, 1, 1, 1, 1]
-  )
-  
-  // Minimal blur for crystal-clear readability
-  const blur = useTransform(
-    globalScrollProgress,
-    [cardStart - 0.04, cardStart - 0.015, cardStart - 0.005, cardStart + 0.005, cardEnd - 0.005, cardEnd + 0.015, cardEnd + 0.04],
-    carouselStarted ? [3, 1.5, 0.5, 0, 0, isLastCard ? 0 : 1.5, isLastCard ? 0 : 3] : [0, 0, 0, 0, 0, 0, 0]
-  )
-  
-  // Subtle rotation for elegant transitions (no rotation for last card)
-  const rotateZ = useTransform(
-    globalScrollProgress,
-    [cardStart - 0.04, cardStart - 0.01, cardStart + 0.01, cardEnd - 0.02, cardEnd - 0.005, cardEnd + 0.02],
-    carouselStarted ? [3, 1, 0, 0, isLastCard ? 0 : -1.5, isLastCard ? 0 : -6] : [0, 0, 0, 0, 0, 0]
-  )
-
-  return (
-    <motion.div
-      style={{ 
-        opacity,
-        scale,
-        x,
-        y,
-        rotateZ,
-        filter: `blur(${blur}px)`,
-        zIndex: Math.round(isActive.get() * 10) // Higher z-index when active
-      }}
-      className="absolute inset-0 flex items-center justify-center"
-    >
-      {/* Animated gradient background with parallax */}
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(circle at 50% 50%, ${color}25 0%, ${color}15 40%, transparent 70%)`,
-          transform: `translateY(${y * 0.1}px)` // Subtle parallax effect
-        }}
-        animate={{
-          background: [
-            `radial-gradient(circle at 50% 50%, ${color}25 0%, ${color}15 40%, transparent 70%)`,
-            `radial-gradient(circle at 60% 40%, ${color}30 0%, ${color}20 35%, transparent 65%)`,
-            `radial-gradient(circle at 40% 60%, ${color}25 0%, ${color}15 40%, transparent 70%)`,
-            `radial-gradient(circle at 50% 50%, ${color}25 0%, ${color}15 40%, transparent 70%)`
-          ]
-        }}
-        transition={{
-          duration: 5,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut"
-        }}
-      />
-      
-      {/* Secondary animated background layer with counter parallax */}
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          background: `linear-gradient(135deg, ${color}20, ${color}10, transparent)`,
-          transform: `translateY(${y * -0.05}px)` // Counter parallax for depth
-        }}
-        animate={{
-          background: [
-            `linear-gradient(135deg, ${color}20, ${color}10, transparent)`,
-            `linear-gradient(225deg, ${color}15, ${color}08, transparent)`,
-            `linear-gradient(315deg, ${color}20, ${color}12, transparent)`,
-            `linear-gradient(45deg, ${color}18, ${color}10, transparent)`,
-            `linear-gradient(135deg, ${color}20, ${color}10, transparent)`
-          ]
-        }}
-        transition={{
-          duration: 7,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut"
-        }}
-      />
-
-      <div className="relative z-10 text-center max-w-2xl px-8">
-        <motion.div
-          className="text-8xl mb-8 relative"
-          initial={{ opacity: 0, scale: 0.8, y: 40 }}
-          animate={carouselStarted ? {
-            opacity: 1,
-            scale: [0.8, 1.1, 1],
-            y: [40, 0, 0],
-            rotate: [0, 5, -5, 0]
-          } : {
-            opacity: 0,
-            scale: 0.8,
-            y: 40
-          }}
-          transition={{ 
-            duration: carouselStarted ? 2.5 : 0.8,
-            delay: 0.1,
-            repeat: carouselStarted ? Number.POSITIVE_INFINITY : 0,
-            ease: "easeInOut"
-          }}
-        >
-          {/* Animated background glow for the emoji */}
-          <motion.div
-            className="absolute inset-0 rounded-full blur-2xl"
-            style={{
-              background: color,
-              opacity: 0.5
-            }}
-            animate={{
-              scale: [1.2, 1.8, 1.2],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut"
-            }}
-          />
-          <div className="relative z-10">{image}</div>
-        </motion.div>
-
-        <motion.h3
-          className="text-5xl font-bold mb-6 text-white drop-shadow-lg"
-          style={{ 
-            color,
-            textShadow: `0 0 30px ${color}50, 0 0 60px ${color}30`
-          }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={carouselStarted ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ 
-            duration: 1.0, 
-            delay: 0.4,
-            ease: [0.25, 0.46, 0.45, 0.94]
-          }}
-        >
-          {title}
-        </motion.h3>
-
-        <motion.p
-          className="text-xl text-gray-200 leading-relaxed mb-8 backdrop-blur-sm"
-          initial={{ opacity: 0, y: 25 }}
-          animate={carouselStarted ? { opacity: 1, y: 0 } : { opacity: 0, y: 25 }}
-          transition={{ 
-            duration: 1.0, 
-            delay: 0.6,
-            ease: [0.25, 0.46, 0.45, 0.94]
-          }}
-        >
-          {description}
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={carouselStarted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ 
-            duration: 1.0, 
-            delay: 0.8,
-            ease: [0.25, 0.46, 0.45, 0.94]
-          }}
-        >
-          <Button 
-            size="lg" 
-            className="px-8 py-4 text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-95 backdrop-blur-sm border border-white/10" 
-            style={{ 
-              backgroundColor: `${color}ee`, 
-              color: "#000",
-              boxShadow: `0 8px 32px ${color}40`
-            }}
-          >
-            <Play className="w-5 h-5 mr-2" />
-            Play {title}
-          </Button>
-        </motion.div>
-      </div>
-  </motion.div>
-  )
-}
+// Game modes data
+const gameModes = [
+  {
+    title: "Classic Mode",
+    description: "Experience the timeless Tetris gameplay with falling blocks, line clearing, and increasing speed. Perfect for beginners and veterans alike.",
+    image: "🎯",
+    color: "#00f5ff"
+  },
+  {
+    title: "Speed Challenge",
+    description: "Test your reflexes in high-speed gameplay where blocks fall faster than ever. Only the quickest players survive the ultimate challenge.",
+    image: "⚡",
+    color: "#ffff00"
+  },
+  {
+    title: "Multiplayer Battle",
+    description: "Face off against players worldwide in intense real-time battles. Send garbage blocks and defend your board to claim victory.",
+    image: "⚔️",
+    color: "#ff8800"
+  },
+  {
+    title: "Puzzle Mode",
+    description: "Solve carefully crafted puzzles with limited moves. Think strategically to clear specific patterns and unlock complex challenges.",
+    image: "🧩",
+    color: "#aa00ff"
+  },
+  {
+    title: "Marathon Mode",
+    description: "How long can you survive? Play endlessly as the speed gradually increases. Perfect for setting new personal records.",
+    image: "🏃",
+    color: "#00ff00"
+  },
+  {
+    title: "Time Attack",
+    description: "Race against the clock to clear as many lines as possible. Every second counts in this adrenaline-pumping game mode.",
+    image: "⏰",
+    color: "#0088ff"
+  },
+  {
+    title: "Zen Mode",
+    description: "Relax and enjoy Tetris without pressure. No time limits, no speed increases - just pure, meditative block-stacking bliss.",
+    image: "🧘",
+    color: "#ff0000"
+  }
+]
 
 
 export const GameModes = () => {
-  const sectionRef = useRef(null)
-  const carouselTriggerRef = useRef(null)
-  const [carouselStarted, setCarouselStarted] = useState(false)
-  
-  // Track when the first card comes into view
-  const isInView = useInView(carouselTriggerRef, {
-    threshold: 0.5,
-    triggerOnce: true
-  })
-  
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"]
-  })
-
-  useEffect(() => {
-    if (isInView) {
-      setCarouselStarted(true)
-    }
-  }, [isInView])
-
-  useEffect(() => {
-    // Enable smooth scrolling
-    document.documentElement.style.scrollBehavior = 'smooth'
-    return () => {
-      document.documentElement.style.scrollBehavior = 'auto'
-    }
-  }, [])
-
   return (
-    <div ref={sectionRef} className="relative mt-0">
-        <div className="text-center py-12 relative z-10 h-screen flex flex-col justify-center bg-background">
+    <section className="py-20" id="game-modes">
+      <div className="container mx-auto px-4">
+        {/* Header Section */}
+        <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <Badge className="mb-4 bg-primary text-primary-foreground mx-auto">Game Modes</Badge>
+            <Badge className="mb-6 bg-gradient-to-r from-primary/20 to-primary/10 text-primary border-primary/20 px-4 py-2">
+              🎮 Game Modes
+            </Badge>
           </motion.div>
           
           <motion.h2 
-            className="text-4xl md:text-5xl font-bold mb-4 text-balance"
+            className="text-4xl md:text-6xl font-bold mb-6 text-balance"
             initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            Discover <span className="text-primary">Every Mode</span>
+            Choose Your <span className="text-primary">Adventure</span>
           </motion.h2>
           
           <motion.p 
-            className="text-lg text-muted-foreground max-w-2xl mx-auto"
+            className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            Scroll down to explore all game modes
+            From classic puzzle challenges to intense multiplayer battles - 
+            discover seven unique ways to experience the world's most beloved puzzle game
           </motion.p>
-          
-          <motion.div 
-            className="mt-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-              className="w-6 h-10 border-2 border-primary/60 rounded-full mx-auto flex items-start justify-center pt-2"
-            >
-              <div className="w-1 h-3 bg-primary/60 rounded-full" />
-            </motion.div>
-          </motion.div>
         </div>
 
-        <FixedViewportCarousel>
-          <div ref={carouselTriggerRef}>
-            <FixedGameCard
-              index={0}
-              totalCards={7}
-              globalScrollProgress={scrollYProgress}
-              carouselStarted={carouselStarted}
-              title="Classic Mode"
-              description="Experience the timeless Tetris gameplay with falling blocks, line clearing, and increasing speed. Perfect for beginners and veterans alike who want to master the fundamentals."
-              image="🎯"
-              color="#00f5ff"
-              backgroundImage="retro tetris blocks falling in classic game board"
-            />
-          </div>
-          <FixedGameCard
-            index={1}
-            totalCards={7}
-            globalScrollProgress={scrollYProgress}
-            carouselStarted={carouselStarted}
-            title="Speed Challenge"
-            description="Test your reflexes in high-speed gameplay where blocks fall faster than ever. Only the quickest players survive the ultimate challenge of lightning-fast decision making."
-            image="⚡"
-            color="#ffff00"
-            backgroundImage="fast moving tetris pieces with speed lines and motion blur"
-          />
-          <FixedGameCard
-            index={2}
-            totalCards={7}
-            globalScrollProgress={scrollYProgress}
-            carouselStarted={carouselStarted}
-            title="Multiplayer Battle"
-            description="Face off against players worldwide in intense real-time battles. Send garbage blocks and defend your board to claim victory in competitive matches."
-            image="⚔️"
-            color="#ff8800"
-            backgroundImage="two tetris boards side by side in battle mode"
-          />
-          <FixedGameCard
-            index={3}
-            totalCards={7}
-            globalScrollProgress={scrollYProgress}
-            carouselStarted={carouselStarted}
-            title="Puzzle Mode"
-            description="Solve carefully crafted puzzles with limited moves. Think strategically to clear specific patterns and unlock increasingly complex challenges."
-            image="🧩"
-            color="#aa00ff"
-            backgroundImage="complex tetris puzzle patterns and geometric shapes"
-          />
-          <FixedGameCard
-            index={4}
-            totalCards={7}
-            globalScrollProgress={scrollYProgress}
-            carouselStarted={carouselStarted}
-            title="Marathon Mode"
-            description="How long can you survive? Play endlessly as the speed gradually increases. Perfect for setting new personal records and testing endurance."
-            image="🏃"
-            color="#00ff00"
-            backgroundImage="endless tetris gameplay with increasing difficulty levels"
-          />
-          <FixedGameCard
-            index={5}
-            totalCards={7}
-            globalScrollProgress={scrollYProgress}
-            carouselStarted={carouselStarted}
-            title="Time Attack"
-            description="Race against the clock to clear as many lines as possible. Every second counts in this adrenaline-pumping game mode that rewards quick thinking."
-            image="⏰"
-            color="#0088ff"
-            backgroundImage="digital clock and timer with tetris blocks racing"
-          />
-          <FixedGameCard
-            index={6}
-            totalCards={7}
-            globalScrollProgress={scrollYProgress}
-            carouselStarted={carouselStarted}
-            title="Zen Mode"
-            description="Relax and enjoy Tetris without pressure. No time limits, no speed increases - just pure, meditative block-stacking bliss for peaceful gameplay."
-            image="🧘"
-            color="#ff0000"
-            backgroundImage="peaceful zen garden with floating tetris blocks"
-          />
-        </FixedViewportCarousel>
-        
-        {/* Scroll Progress Indicator */}
-        <motion.div 
-          className="fixed right-8 top-1/2 transform -translate-y-1/2 z-50"
-          initial={{ opacity: 0, x: 20 }}
-          animate={carouselStarted ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+        {/* Game Modes Carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <div className="w-1 h-32 bg-white/20 rounded-full overflow-hidden">
-            <motion.div
-              className="w-full bg-primary rounded-full origin-top"
-              style={{ 
-                scaleY: carouselStarted ? scrollYProgress : 0,
-                height: "100%"
-              }}
-            />
-          </div>
+          <HorizontalCarousel totalItems={gameModes.length}>
+            {gameModes.map((mode, index) => (
+              <GameModeCard
+                key={mode.title}
+                title={mode.title}
+                description={mode.description}
+                image={mode.image}
+                color={mode.color}
+              />
+            ))}
+          </HorizontalCarousel>
+        </motion.div>
+
+        {/* Call to Action */}
+        <motion.div 
+          className="text-center mt-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <p className="text-muted-foreground mb-8">
+            Ready to start your Tetris journey?
+          </p>
+          <Button size="lg" className="px-8 py-3 text-lg">
+            <Play className="w-5 h-5 mr-2" />
+            Start Playing Now
+          </Button>
         </motion.div>
       </div>
+    </section>
   )
 }

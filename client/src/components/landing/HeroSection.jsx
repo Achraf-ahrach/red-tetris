@@ -1,9 +1,7 @@
 
-import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring } from "framer-motion"
+import { motion, useScroll, useTransform } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Play, Users, Trophy, Zap, Star, GamepadIcon, Twitter } from "lucide-react"
+import { Play } from "lucide-react"
 import {useRef} from 'react'
 
 const TetrisBlock = ({ color, size = 20, className = "" }) => (
@@ -77,10 +75,6 @@ export const HeroSection = () => {
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-lg">
                 <Play className="w-5 h-5 mr-2" />
                 Start Playing
-              </Button>
-              <Button variant="outline" size="lg" className="px-8 py-4 text-lg bg-transparent">
-                <GamepadIcon className="w-5 h-5 mr-2" />
-                Watch Demo
               </Button>
             </motion.div>
           </motion.div>
