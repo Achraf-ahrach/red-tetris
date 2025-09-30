@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Play } from "lucide-react"
 import { useRef, useEffect, useState } from "react"
 
-// Fixed viewport carousel with card replacement animations
 const FixedViewportCarousel = ({ children }) => {
   return (
     <div className="relative">
@@ -23,7 +22,7 @@ const FixedViewportCarousel = ({ children }) => {
           }
         }
       `}</style>
-      <div className="h-[1800vh] relative"> {/* Ultra-extended scroll height for ultra-smooth transitions */}
+      <div className="h-[1800vh] relative">
         <div className="sticky top-0 h-screen overflow-hidden">
           {children}
         </div>
