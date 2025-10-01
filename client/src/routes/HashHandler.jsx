@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import LandingPage from '@/pages/landing';
-import Game from '@/pages/game';
+import { useEffect, useState } from "react";
+import LandingPage from "@/pages/landing";
+import Game from "@/pages/game";
 
 const HashHandler = () => {
-  const navigate = useNavigate();
   const [hashData, setHashData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -12,18 +10,18 @@ const HashHandler = () => {
     // Function to parse URL hash format: #roomName[playerName]
     const parseUrlHash = () => {
       const hash = window.location.hash.substring(1); // Remove the # symbol
-      
+
       // Check if there's a hash
       if (!hash) {
         return null;
       }
-      
+
       const match = hash.match(/^(.+)\[(.+)\]$/);
-      
+
       if (match) {
         return {
           room: match[1],
-          player: match[2]
+          player: match[2],
         };
       }
       return null;
@@ -39,10 +37,10 @@ const HashHandler = () => {
       setHashData(newHashData);
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    
+    window.addEventListener("hashchange", handleHashChange);
+
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener("hashchange", handleHashChange);
     };
   }, []);
 
