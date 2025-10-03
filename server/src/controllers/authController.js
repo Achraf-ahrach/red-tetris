@@ -41,12 +41,10 @@ export class AuthController {
     req.logout((err) => {
       if (err) {
         return res.status(500).json({
-          success: false,
           message: "Logout failed",
         });
       }
       res.json({
-        success: true,
         message: "Logged out successfully",
       });
     });
@@ -59,7 +57,6 @@ export class AuthController {
 
       if (!refreshToken) {
         return res.status(401).json({
-          success: false,
           message: "Refresh token required",
         });
       }
@@ -69,7 +66,6 @@ export class AuthController {
 
       if (decoded.type !== "refresh") {
         return res.status(401).json({
-          success: false,
           message: "Invalid refresh token",
         });
       }
@@ -78,7 +74,6 @@ export class AuthController {
       const user = await this.userService.getUserById(decoded.id);
       if (!user) {
         return res.status(401).json({
-          success: false,
           message: "User not found",
         });
       }
@@ -87,15 +82,76 @@ export class AuthController {
       const newRefreshToken = this.userService.generateRefreshToken(user);
 
       res.json({
-        success: true,
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       });
     } catch (error) {
-      console.error("Refresh token error:", error);
       res.status(401).json({
-        success: false,
         message: "Invalid refresh token",
+      });
+    }
+  };
+
+  // Register with email and password
+  register = async (req, res) => {
+    try {
+      const { email, password, username, firstName, lastName } = req.body;
+
+      // Validate required fields
+      if (!email || !password || !username) {
+        return res.status(400).json({
+          success: false,
+          message: "Email, password, and username are required",
+        });
+      }
+
+      // Validate password strength
+      if (password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 6 characters long",
+        });
+      }
+
+      res.status(201).json({
+        message: "User registered successfully",
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  // Login with email and password
+  login = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      // Validate required fields
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Email and password are required",
+        });
+      }
+
+      // Login user
+      const user = await this.userService.loginUser(email, password);
+
+      // Generate tokens
+      const accessToken = this.userService.generateJWT(user);
+      const refreshToken = this.userService.generateRefreshToken(user);
+
+      res.json({
+        accessToken,
+        refreshToken,
+      });
+    } catch (error) {
+      res.status(401).json({
+        message: error.message,
       });
     }
   };

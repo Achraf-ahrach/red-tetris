@@ -1,4 +1,4 @@
-import { UserService } from '../services/userService.js';
+import { UserService } from "../services/userService.js";
 
 export class UserController {
   constructor() {
@@ -10,13 +10,12 @@ export class UserController {
     try {
       const users = await this.userService.getAllUsers();
       res.json({
-        data: users
+        data: users,
       });
     } catch (error) {
       res.status(500).json({
-        success: false,
-        message: 'Failed to fetch users',
-        error: error.message
+        message: "Failed to fetch users",
+        error: error.message,
       });
     }
   };
@@ -26,22 +25,46 @@ export class UserController {
     try {
       const { id } = req.params;
       const user = await this.userService.getUserById(parseInt(id));
-      
+
       if (!user) {
         return res.status(404).json({
-          success: false,
-          message: 'User not found'
+          message: "User not found",
         });
       }
 
       res.json({
-        data: user
+        data: user,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Failed to fetch user",
+        error: error.message,
+      });
+    }
+  };
+
+  getCurrentUser = async (req, res) => {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.status(401).json({
+          message: "User not authenticated",
+        });
+      }
+
+      // Remove sensitive information before sending
+      const { password, ...userWithoutPassword } = user;
+
+      res.json({
+        success: true,
+        data: userWithoutPassword,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch user',
-        error: error.message
+        message: "Failed to fetch current user",
+        error: error.message,
       });
     }
   };

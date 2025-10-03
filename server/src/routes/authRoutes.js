@@ -6,6 +6,10 @@ import { authenticateJWT } from "../middlewares/auth.js";
 const router = express.Router();
 const authController = new AuthController();
 
+// Email/Password Authentication
+router.post("/register", authController.register);
+router.post("/login", authController.login);
+
 // 42 OAuth routes
 router.get("/42", passport.authenticate("42"));
 router.get(

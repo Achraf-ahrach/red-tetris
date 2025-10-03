@@ -4,12 +4,13 @@ import { users } from "../models/user.js";
 
 export class UserRepository {
   async findById(id) {
-    const result = await db.select().from(users).where(eq(users.id, id));
+    const result =  await db.select().from(users).where(eq(users.id, id))
     return result[0] || null;
   }
 
   async findByEmail(email) {
-    const result = await db.select().from(users).where(eq(users.email, email));
+    const result = await db.select().from(users).where(eq(users.email, email))
+    console.log({result})
     return result[0] || null;
   }
 
