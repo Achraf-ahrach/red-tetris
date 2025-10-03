@@ -7,8 +7,30 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Mail, Lock, LogIn } from "lucide-react"
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from "zod"
+
+const LoginSchema = z.object({
+  email: z.email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long")
+})
+
 
 export const Login = () => {
+  const form = useForm({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
+
+  const onSubmit = (data) => {
+    console.log("Login data:", data)
+
+  }
 
   return (
     <div className="min-h-screen bg-background grid-bg flex items-center justify-center p-4 relative overflow-hidden">
@@ -78,57 +100,81 @@ export const Login = () => {
               </div>
             </div>
 
-            <form className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    className="pl-10 h-11 bg-input border-border/50 focus:border-primary transition-colors"
-                    required
-                  />
-                </div>
-              </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">Email</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            type="email"
+                            placeholder="you@example.com"
+                            className="pl-10 h-11 bg-input border-border/50 focus:border-primary transition-colors"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-10 h-11 bg-input border-border/50 focus:border-primary transition-colors"
-                    required
-                  />
-                </div>
-              </div>
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            className="pl-10 h-11 bg-input border-border/50 focus:border-primary transition-colors"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <Link to="/forgot-password" className="text-primary hover:underline">
-                    Forgot your password?
-                  </Link>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">
+                    <Link to="/forgot-password" className="text-primary hover:underline">
+                      Forgot your password?
+                    </Link>
+                  </div>
                 </div>
-              </div>
 
-              <Button
-                type="submit"
-                className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 transition-all text-base font-medium"
-              >
-                <LogIn className="w-5 h-5 mr-2" />
-                Sign In
-              </Button>
-            </form>
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 transition-all text-base font-medium"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <LogIn className="w-5 h-5" />
+                    </motion.div>
+                  ) : (
+                    <>
+                      <LogIn className="w-5 h-5 mr-2" />
+                      Sign In
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
