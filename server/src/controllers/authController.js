@@ -97,6 +97,7 @@ export class AuthController {
     try {
       const { email, password, username, firstName, lastName } = req.body;
 
+
       // Validate required fields
       if (!email || !password || !username) {
         return res.status(400).json({
@@ -113,11 +114,13 @@ export class AuthController {
         });
       }
 
+      const user = await this.userService.registerUser({firstName,lastName, username, password, email})
+
+      console.log({user})
       res.status(201).json({
         message: "User registered successfully",
       });
     } catch (error) {
-      console.error("Registration error:", error);
       res.status(400).json({
         success: false,
         message: error.message,

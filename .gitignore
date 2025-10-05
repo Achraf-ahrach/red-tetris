@@ -22,4 +22,9 @@ rad.json
 TestResults.xml
 #nodemoduls
 node_modules
+#env file
 .env
+# Ignore Drizzle generated files
+**/drizzle/*.sql
+**/drizzle/meta/
+server/drizzle/

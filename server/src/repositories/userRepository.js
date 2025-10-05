@@ -4,13 +4,12 @@ import { users } from "../models/user.js";
 
 export class UserRepository {
   async findById(id) {
-    const result =  await db.select().from(users).where(eq(users.id, id))
+    const result = await db.select().from(users).where(eq(users.id, id));
     return result[0] || null;
   }
 
   async findByEmail(email) {
-    const result = await db.select().from(users).where(eq(users.email, email))
-    console.log({result})
+    const result = await db.select().from(users).where(eq(users.email, email));
     return result[0] || null;
   }
 
@@ -31,8 +30,23 @@ export class UserRepository {
   }
 
   async create(userData) {
-    const result = await db.insert(users).values(userData).returning();
-    return result[0];
+    try {
+      console.log("Creating user with data:", userData);
+
+      const result = await db.insert(users).values(userData).returning();
+      console.log("Insert result:", { result, length: result.length });
+
+      if (!result || result.length === 0) {
+        throw new Error(
+          "Insert operation returned empty result - user may not have been created"
+        );
+      }
+
+      return result[0];
+    } catch (error) {
+      console.error("Database insert error:", error);
+      throw error;
+    }
   }
 
   async update(id, userData) {

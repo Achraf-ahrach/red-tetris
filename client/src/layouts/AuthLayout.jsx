@@ -1,14 +1,11 @@
 import React from "react"
-import { Link } from "react-router-dom"
+import { Outlet } from "react-router-dom"
 import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { ArrowLeft } from "lucide-react"
 
 export const AuthLayout = ({ 
   title, 
   description, 
-  children, 
   footerContent 
 }) => {
   return (
@@ -46,13 +43,6 @@ export const AuthLayout = ({
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        {/* Back to Home Button */}
-        <Link to="/">
-          <Button variant="ghost" className="mb-6 hover:bg-muted/50">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
-        </Link>
 
         {/* Auth Card */}
         <Card className="border-border/50 backdrop-blur-sm bg-card/95 shadow-2xl">
@@ -64,7 +54,7 @@ export const AuthLayout = ({
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {children}
+           <Outlet/>
           </CardContent>
 
           {footerContent && (

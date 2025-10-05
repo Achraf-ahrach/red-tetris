@@ -1,8 +1,8 @@
+import { AuthLayout } from "@/layouts/AuthLayout";
 import { Login } from "@/pages/auth/login";
 import { Register } from "@/pages/auth/register";
 import LandingPage from "@/pages/landing";
 import { createBrowserRouter, Link } from "react-router-dom";
-import { AuthLayout } from "@/components/AuthLayout";
 
 const router = createBrowserRouter([
   {
