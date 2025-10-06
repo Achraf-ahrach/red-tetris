@@ -33,31 +33,7 @@ export class UserService {
     return await this.userRepository.create(userData);
   }
 
-  async createOrUpdateUserFrom42(profile) {
-    console.log("42 Profile received:", JSON.stringify(profile, null, 2));
-
-    // Passport strategies usually put the raw data in _json
-    const profileData = profile._json || profile;
-    const fortyTwoId = (profileData.id || profile.id).toString();
-
-    let user = await this.userRepository.findByFortyTwoId(fortyTwoId);
-    const userData = {
-      firstName: profileData.first_name || `User`,
-      lastName: profileData.last_name || fortyTwoId,
-      email: profileData.email || `user${fortyTwoId}@42.fr`,
-      username: profileData.login || `user${fortyTwoId}`,
-      avatar: profileData.image?.link,
-      fortyTwoId: fortyTwoId,
-    };
-
-    if (user) {
-      user = await this.userRepository.update(user.id, userData);
-    } else {
-      user = await this.userRepository.create(userData);
-    }
-
-    return user;
-  }
+  // 42 OAuth user creation method removed - using email/password registration only
 
   generateJWT(user) {
     return jwt.sign(

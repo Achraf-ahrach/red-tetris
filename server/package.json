@@ -7,7 +7,7 @@
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "dev": "nodemon server.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -24,7 +24,7 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.5",
     "express": "^5.1.0",
-    "express-session": "^1.18.0",
+    "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
     "nodemon": "^3.1.10",
     "passport": "^0.7.0",
@@ -40,9 +40,13 @@
     "supertest": "^7.1.4"
   },
   "jest": {
-    "testMatch": ["**/__tests__/**/*.test.js"],
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["<rootDir>/__tests__/setup.js"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/__tests__/setup.js"
+    ],
     "collectCoverageFrom": [
       "src/**/*.js",
       "!src/**/*.test.js",
