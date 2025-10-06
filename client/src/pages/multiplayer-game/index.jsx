@@ -16,13 +16,12 @@ import {
   getDropSpeed,
 } from "@/pages/game/gameLogic";
 
-function MultiplayerGame() {
+function MultiplayerGame({ roomName, playerName }) {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  console.log("Room Name:", roomName);
+  console.log("Player Name:", playerName);
 
-  const roomCode = searchParams.get("room");
-  const playerName = searchParams.get("player");
-  const isHost = searchParams.get("host") === "true";
+  // const isHost = "false";
 
   // Player 1 (local player) state
   const [p1Board, setP1Board] = useState(createEmptyBoard);
@@ -51,17 +50,17 @@ function MultiplayerGame() {
   const [gameWinner, setGameWinner] = useState(null);
 
   // Simulate opponent joining (for demo purposes)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isHost) {
-        setOpponent({ name: "Player2", connected: true });
-      } else {
-        setOpponent({ name: "Host", connected: true });
-      }
-    }, 2000);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     if (isHost) {
+  //       setOpponent({ name: "Player2", connected: true });
+  //     } else {
+  //       setOpponent({ name: "Host", connected: true });
+  //     }
+  //   }, 2000);
 
-    return () => clearTimeout(timer);
-  }, [isHost]);
+  //   return () => clearTimeout(timer);
+  // }, [isHost]);
 
   // Initialize game for both players
   const initializeGame = useCallback(() => {
@@ -411,7 +410,7 @@ function MultiplayerGame() {
     navigate("/multiplayer");
   };
 
-  if (!roomCode || !playerName) {
+  if (!roomName || !playerName) {
     navigate("/multiplayer");
     return null;
   }
@@ -441,7 +440,7 @@ function MultiplayerGame() {
               MULTIPLAYER BATTLE
             </h1>
             <p className="text-gray-300 mt-1">
-              Room: <span className="font-bold">{roomCode}</span>
+              Room: <span className="font-bold">{roomName}</span>
             </p>
           </div>
 
@@ -467,7 +466,7 @@ function MultiplayerGame() {
               </h2>
               <p className="text-gray-300">
                 Share room code:{" "}
-                <span className="font-bold text-blue-400">{roomCode}</span>
+                <span className="font-bold text-blue-400">{roomName}</span>
               </p>
             </div>
           </div>

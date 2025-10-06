@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 
 const MultiplayerSetup = () => {
   const navigate = useNavigate();
@@ -7,50 +8,76 @@ const MultiplayerSetup = () => {
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [roomNameError, setRoomNameError] = useState("");
-  const playerName = "Achraf_test"; // [<player_name>]
+  const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  // Generate a random player name like "Player1234"
+  const [playerName] = useState(() => {
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    return `Player${randomNum}`;
+  });
 
-  // Mock rooms for demonstration - in real app this would come from server
+  // Initialize socket connection
   useEffect(() => {
-    const mockRooms = [
-      {
-        id: "ROOM001",
-        name: "Epic Battle Arena",
-        players: 1,
-        maxPlayers: 2,
-        host: "Player123",
-        status: "waiting",
-        created: "2 min ago",
-      },
-      {
-        id: "ROOM002",
-        name: "Speed Challenge",
-        players: 1,
-        maxPlayers: 2,
-        host: "TetrisMaster",
-        status: "waiting",
-        created: "5 min ago",
-      },
-      {
-        id: "ROOM003",
-        name: "Casual Fun",
-        players: 2,
-        maxPlayers: 2,
-        host: "GameLover",
-        status: "playing",
-        created: "8 min ago",
-      },
-      {
-        id: "ROOM004",
-        name: "Championship Match",
-        players: 1,
-        maxPlayers: 2,
-        host: "ProGamer",
-        status: "waiting",
-        created: "12 min ago",
-      },
-    ];
-    setAvailableRooms(mockRooms);
-  }, []);
+    const newSocket = io("http://localhost:3000", {
+      query: { nickname: playerName },
+    });
+    newSocket.on("connect", () => {
+      setIsConnected(true);
+      // Request rooms list on connect
+      newSocket.emit("get-rooms");
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("Disconnected from server");
+      setIsConnected(false);
+    });
+
+    // Listen for rooms list
+    newSocket.on("rooms-list", (rooms) => {
+      console.log("Received rooms list:", rooms);
+      setAvailableRooms(rooms);
+    });
+
+    // Listen for successful room join
+    newSocket.on("joined-room", (data) => {
+      console.log("Successfully joined room:", data);
+      setIsCreatingRoom(false);
+      // Navigate to game page with room info
+      navigate(`/#${data.room.id}[${data.player.nickname}]`);
+    });
+
+    // Listen for room creation/join errors
+    newSocket.on("join-room-error", (error) => {
+      console.error("Room join error:", error);
+      setRoomNameError(error.message);
+      setIsCreatingRoom(false);
+    });
+
+    // Listen for general errors
+    newSocket.on("error", (error) => {
+      console.error("Socket error:", error);
+      setRoomNameError(error.message);
+      setIsCreatingRoom(false);
+    });
+
+    setSocket(newSocket);
+
+    // Cleanup on unmount
+    return () => {
+      newSocket.close();
+    };
+  }, [playerName, navigate]);
+
+  // Periodically refresh rooms list
+  useEffect(() => {
+    if (socket && isConnected) {
+      const interval = setInterval(() => {
+        socket.emit("get-rooms");
+      }, 5000); // Refresh every 5 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [socket, isConnected]);
 
   const createRoom = () => {
     if (!roomName.trim()) {
@@ -58,26 +85,43 @@ const MultiplayerSetup = () => {
       return;
     }
 
+    if (!socket || !isConnected) {
+      setRoomNameError("Not connected to server. Please wait...");
+      return;
+    }
+
     setRoomNameError("");
     setIsCreatingRoom(true);
 
-    // http://<server_name_or_ip>:<port>/#<room_name>[<player_name>]
+    // Let the server generate a room ID and use the room name as part of the nickname or room identification
+    console.log("Creating room with name:", roomName);
+    socket.emit("create-room", { nickname: playerName, roomName: roomName });
+
+    // Add a timeout to reset the creating state if something goes wrong
     setTimeout(() => {
-      navigate(`/#${roomName}[${playerName}]`);
-    }, 1000);
+      if (isCreatingRoom) {
+        setIsCreatingRoom(false);
+        setRoomNameError("Room creation timed out. Please try again.");
+      }
+    }, 10000); // 10 second timeout
   };
 
   const joinRoom = (room) => {
-    if (room.status === "playing" || room.players >= room.maxPlayers) {
+    if (!socket || !isConnected) {
+      alert("Not connected to server. Please wait...");
+      return;
+    }
+
+    if (room.gameState === "playing" || room.playerCount >= room.maxPlayers) {
       alert("This room is full or already in game!");
       return;
     }
 
-    navigate(
-      `/multiplayer-game?room=${encodeURIComponent(
-        room.name
-      )}&player=${encodeURIComponent(playerName)}&host=false`
-    );
+    console.log("Joining room:", room.id);
+    socket.emit("join-room", {
+      roomId: room.id,
+      nickname: playerName,
+    });
   };
 
   return (
@@ -108,6 +152,22 @@ const MultiplayerSetup = () => {
           <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto">
             Join a room or create your own battle arena!
           </p>
+          <div className="mt-4">
+            <span
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${
+                isConnected
+                  ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                  : "bg-red-500/20 text-red-400 border border-red-500/30"
+              }`}
+            >
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isConnected ? "bg-green-400" : "bg-red-400"
+                }`}
+              ></div>
+              {isConnected ? "Connected" : "Connecting..."}
+            </span>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -152,7 +212,7 @@ const MultiplayerSetup = () => {
 
                 <button
                   onClick={createRoom}
-                  disabled={isCreatingRoom}
+                  disabled={isCreatingRoom || !isConnected}
                   className="w-full group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-lg font-bold rounded-lg shadow-xl hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   <span className="relative z-10">
@@ -161,6 +221,8 @@ const MultiplayerSetup = () => {
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         Creating...
                       </div>
+                    ) : !isConnected ? (
+                      "CONNECTING..."
                     ) : (
                       "CREATE ROOM"
                     )}
@@ -193,7 +255,7 @@ const MultiplayerSetup = () => {
                 <div
                   key={room.id}
                   className={`p-4 bg-white/5 backdrop-blur-sm rounded-xl border transition-all duration-300 cursor-pointer hover:bg-white/10 ${
-                    room.status === "waiting"
+                    room.gameState === "waiting"
                       ? "border-green-500/30 hover:border-green-500/50"
                       : "border-red-500/30 hover:border-red-500/50"
                   }`}
@@ -203,37 +265,57 @@ const MultiplayerSetup = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h4 className="text-white font-bold text-lg">
-                          {room.name}
+                          {room.id}
                         </h4>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-bold ${
-                            room.status === "waiting"
+                            room.gameState === "waiting"
                               ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                              : room.gameState === "playing"
+                              ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
                               : "bg-red-500/20 text-red-400 border border-red-500/30"
                           }`}
                         >
-                          {room.status === "waiting" ? "WAITING" : "PLAYING"}
+                          {room.gameState.toUpperCase()}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-4 text-sm text-gray-400">
-                        <span>👤 Host: {room.host}</span>
+                        {room.players && room.players.length > 0 && (
+                          <span>👤 Host: {room.players[0].nickname}</span>
+                        )}
                         <span>
-                          👥 {room.players}/{room.maxPlayers} players
+                          👥 {room.playerCount}/{room.maxPlayers} players
                         </span>
-                        <span>⏱️ {room.created}</span>
                       </div>
+
+                      {room.players && room.players.length > 0 && (
+                        <div className="mt-2 flex gap-2">
+                          {room.players.map((player, index) => (
+                            <span
+                              key={player.id}
+                              className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs border border-blue-500/30"
+                            >
+                              {player.nickname} {player.ready && "✓"}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {room.status === "waiting" &&
-                      room.players < room.maxPlayers ? (
+                      {room.gameState === "waiting" &&
+                      room.playerCount < room.maxPlayers ? (
                         <div className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg border border-green-500/30 font-bold text-sm">
                           JOIN
                         </div>
                       ) : (
                         <div className="px-4 py-2 bg-gray-500/20 text-gray-400 rounded-lg border border-gray-500/30 font-bold text-sm">
-                          {room.status === "playing" ? "IN GAME" : "FULL"}
+                          {room.gameState === "playing"
+                            ? "IN GAME"
+                            : room.gameState === "finished"
+                            ? "FINISHED"
+                            : "FULL"}
                         </div>
                       )}
                     </div>
@@ -248,7 +330,9 @@ const MultiplayerSetup = () => {
                     No rooms available
                   </h4>
                   <p className="text-gray-400">
-                    Be the first to create a room!
+                    {isConnected
+                      ? "Be the first to create a room!"
+                      : "Connecting to server..."}
                   </p>
                 </div>
               )}

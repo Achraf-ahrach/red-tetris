@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import LandingPage from "@/pages/landing";
-import Game from "@/pages/game";
+import MultiplayerGame from "@/pages/multiplayer-game";
 
 const HashHandler = () => {
   const [hashData, setHashData] = useState(null);
@@ -56,9 +56,10 @@ const HashHandler = () => {
     );
   }
 
-  // If there's a valid hash, render the Game component with the hash data
   if (hashData) {
-    return <Game roomName={hashData.room} playerName={hashData.player} />;
+    return (
+      <MultiplayerGame roomName={hashData.room} playerName={hashData.player} />
+    );
   }
 
   // If no hash, render the landing page

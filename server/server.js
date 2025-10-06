@@ -2,11 +2,22 @@ import "dotenv/config";
 import express from "express";
 import session from "express-session";
 import cors from "cors";
+import { createServer } from "http";
 import passport from "./src/config/passport.js";
 import routes from "./src/routes/index.js";
+import SocketHandler from "./src/socket/socketHandler.js";
+import { setSocketHandler } from "./src/routes/socketRoutes.js";
 
 const app = express();
+const server = createServer(app);
+const socketHandler = new SocketHandler();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Socket.IO
+socketHandler.initialize(server);
+
+// Inject socket handler into routes
+setSocketHandler(socketHandler);
 
 // Middleware
 app.use(
@@ -45,6 +56,7 @@ app.get("/", (req, res) => {
     message: "Red Tetris API Server",
     version: "1.0.0",
     documentation: "/api/health",
+    socket: "Socket.IO enabled for real-time gaming",
   });
 });
 
@@ -66,7 +78,8 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Red Tetris Server running on http://localhost:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Socket.IO server initialized and ready for connections`);
 });
