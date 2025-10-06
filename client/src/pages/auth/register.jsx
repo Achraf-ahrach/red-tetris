@@ -14,8 +14,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useRegisterMutation } from "@/hooks/useAuthMutations";
 import { useNavigate } from "react-router-dom";
+import { useRegisterMutation } from "@/hooks/useAuthMutations";
 
 const RegisterSchema = z
   .object({
@@ -32,10 +32,8 @@ const RegisterSchema = z
   });
 
 export const Register = () => {
-
   const navigate = useNavigate();
   const registerMutation = useRegisterMutation();
-
 
   const form = useForm({
     resolver: zodResolver(RegisterSchema),
@@ -49,10 +47,9 @@ export const Register = () => {
     },
   });
 
-
   const onSubmit = async (data) => {
     try {
-       await registerMutation.mutateAsync({
+      await registerMutation.mutateAsync({
         firstName: data.firstName,
         lastName: data.lastName,
         username: data.username,
@@ -60,8 +57,7 @@ export const Register = () => {
         password: data.password,
       });
       navigate("/login");
-    } catch (error) {
-      console.log("Handled error:", error.message);
+    } catch (_error) {
     }
   };
 

@@ -20,7 +20,6 @@ export function useRegisterMutation() {
   return useMutation({
     mutationKey: ["auth", "register"],
     mutationFn: (payload) => apiPost("/auth/register", payload),
-    
   });
 }
 
@@ -31,3 +30,6 @@ export function useRefreshMutation() {
     onSuccess: (data) => storeTokens(data),
   });
 }
+
+// 42 OAuth is now handled server-side via Passport.js
+// No need for manual token exchange mutations

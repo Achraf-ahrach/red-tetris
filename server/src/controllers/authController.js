@@ -5,22 +5,7 @@ export class AuthController {
     this.userService = new UserService();
   }
 
-  // 42 OAuth callback
-  fortyTwoCallback = async (req, res) => {
-    try {
-      const accessToken = this.userService.generateJWT(req.user);
-      const refreshToken = this.userService.generateRefreshToken(req.user);
-      res.json({
-        accessToken,
-        refreshToken,
-      });
-    } catch (error) {
-      res.status(500).json({
-        message: "Authentication failed",
-        error: error.message,
-      });
-    }
-  };
+  // 42 OAuth methods removed - using email/password authentication only
 
   // Get current user
   getCurrentUser = async (req, res) => {
@@ -97,7 +82,6 @@ export class AuthController {
     try {
       const { email, password, username, firstName, lastName } = req.body;
 
-
       // Validate required fields
       if (!email || !password || !username) {
         return res.status(400).json({
@@ -114,9 +98,15 @@ export class AuthController {
         });
       }
 
-      const user = await this.userService.registerUser({firstName,lastName, username, password, email})
+      const user = await this.userService.registerUser({
+        firstName,
+        lastName,
+        username,
+        password,
+        email,
+      });
 
-      console.log({user})
+      console.log({ user });
       res.status(201).json({
         message: "User registered successfully",
       });

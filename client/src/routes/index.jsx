@@ -1,8 +1,9 @@
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { Login } from "@/pages/auth/login";
 import { Register } from "@/pages/auth/register";
-import LandingPage from "@/pages/landing";
+import GamePage from "@/pages/game";
 import { createBrowserRouter, Link } from "react-router-dom";
+import LandingPage from "@/pages/landing";
 
 const router = createBrowserRouter([
   {
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       />
     ),
     children: [{ index: true, element: <Register /> }],
+  },
+  {
+    path: "/game",
+    element: <GamePage />,
   },
 ]);
 

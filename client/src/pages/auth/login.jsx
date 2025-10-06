@@ -25,6 +25,8 @@ const LoginSchema = z.object({
 
 export const Login = () => {
   const navigate = useNavigate();
+  const loginMutation = useLoginMutation();
+
   const form = useForm({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -33,8 +35,6 @@ export const Login = () => {
     },
   });
 
-  const loginMutation = useLoginMutation();
-
   const onSubmit = async (data) => {
     try {
       await loginMutation.mutateAsync({
@@ -42,39 +42,13 @@ export const Login = () => {
         password: data.password,
       });
       navigate("/game");
-    } catch (error) {
+    } catch (_error) {
       // error handled via mutation state
     }
   };
 
-  const handle42Login = () => {
-    window.location.href = `${import.meta.env.VITE_API_BASE || "/api"}/auth/42`;
-  };
-
   return (
     <>
-      <Button
-        variant="outline"
-        className="w-full h-12 text-base border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all bg-transparent"
-        onClick={handle42Login}
-      >
-        <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M24 12.42l-4.428 4.415H24zM8.028 22.01L0 13.983V8.028L8.028 0h5.955l-5.444 5.444h4.946l3.468-3.468H24v7.08l-4.799 4.798-5.778-5.777H8.028v5.405l5.778 5.777H24v7.08h-7.047l-3.468-3.468H8.028z" />
-        </svg>
-        Sign in with 42
-      </Button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">
-            Or continue with email
-          </span>
-        </div>
-      </div>
-
       {loginMutation.isError && (
         <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
           <p className="text-sm text-destructive">

@@ -29,6 +29,27 @@
       "when": 1759663837576,
       "tag": "0003_glorious_celestials",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1759739781418,
+      "tag": "0004_odd_sharon_carter",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759740785011,
+      "tag": "0005_messy_steel_serpent",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759749343449,
+      "tag": "0006_workable_dagger",
+      "breakpoints": true
     }
   ]
 }
