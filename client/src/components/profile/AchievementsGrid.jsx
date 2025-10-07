@@ -28,7 +28,7 @@ export default function AchievementsGrid({ achievements, userData, variants }) {
       className="mb-10"
     >
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Award className="w-4 h-4 text-muted-foreground" />
+        <Award className="w-4 h-4 text-muted-foreground " />
         Achievements
       </h2>
 
