@@ -184,7 +184,6 @@ class SocketHandler {
     this.playerRooms.set(socket.id, roomId);
 
     // Notify player of successful join
-    console.log("Player joined: 1111");
     socket.emit("joined-room", {
       room: room.getRoomInfo(),
       player: {
@@ -196,7 +195,6 @@ class SocketHandler {
     });
 
     // Notify other players in room
-    console.log("Player joined: 2222");
     socket.to(roomId).emit("player-joined", {
       player: {
         id: player.id,
@@ -207,7 +205,9 @@ class SocketHandler {
       room: room.getRoomInfo(),
     });
 
-    console.log(`Player ${socket.id} joined room ${roomId}`);
+    console.log(
+      `Player id: ${socket.id}, name: ${player.nickname} , joined room: ${roomId}`
+    );
   }
 
   handleLeaveRoom(socket) {
