@@ -7,6 +7,8 @@ import { TetrisBlock } from "@/components/TetrisBlock";
 import { motion } from "motion/react";
 
 const LandingPage = () => {
+
+  
   const pieceShapes = {
     I: [
       [0, 0],
