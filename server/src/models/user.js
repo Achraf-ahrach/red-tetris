@@ -15,7 +15,7 @@ export const users = pgTable("users", {
   username: varchar("username", { length: 100 }).notNull().unique(),
   password: varchar("password", { length: 255 }),
   avatar: text("avatar"),
-  // 42 OAuth fields removed - using email/password authentication only
+  fortyTwoId: varchar("forty_two_id", { length: 255 }).unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

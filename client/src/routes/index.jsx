@@ -4,6 +4,11 @@ import { Register } from "@/pages/auth/register";
 import GamePage from "@/pages/game";
 import { createBrowserRouter, Link } from "react-router-dom";
 import LandingPage from "@/pages/landing";
+import Profile from "@/pages/profile";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import AppLayout from "@/layouts/AppLayout";
+import Leaderboard from "@/pages/leaderboard";
+import GuestRoute from "@/components/GuestRoute";
 
 const router = createBrowserRouter([
   {
@@ -13,42 +18,63 @@ const router = createBrowserRouter([
   {
     path: "login",
     element: (
-      <AuthLayout
-        title="Welcome back"
-        description="Log in to your account"
-        footerContent={
-          <p className="text-sm text-center">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-primary">
-              Register
-            </Link>
-          </p>
-        }
-      />
+      <GuestRoute>
+        <AuthLayout
+          title="Welcome back"
+          description="Log in to your account"
+          footerContent={
+            <p className="text-sm text-center">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-primary">
+                Register
+              </Link>
+            </p>
+          }
+        />
+      </GuestRoute>
     ),
     children: [{ index: true, element: <Login /> }],
   },
   {
     path: "register",
     element: (
-      <AuthLayout
-        title="Create account"
-        description="Join the Tetris community and start playing"
-        footerContent={
-          <p className="text-sm text-center">
-            Already have an account?{" "}
-            <Link to="/login" className="text-primary">
-              Login
-            </Link>
-          </p>
-        }
-      />
+      <GuestRoute>
+        <AuthLayout
+          title="Create account"
+          description="Join the Tetris community and start playing"
+          footerContent={
+            <p className="text-sm text-center">
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary">
+                Login
+              </Link>
+            </p>
+          }
+        />
+      </GuestRoute>
     ),
     children: [{ index: true, element: <Register /> }],
   },
   {
-    path: "/game",
-    element: <GamePage />,
+    element: (
+      <ProtectedRoute useLayout={false}>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: "/game",
+        element: <GamePage />,
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/leaderboard",
+        element: <Leaderboard />,
+      },
+    ],
   },
 ]);
 

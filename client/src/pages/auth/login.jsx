@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ const LoginSchema = z.object({
 
 export const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const loginMutation = useLoginMutation();
 
   const form = useForm({
@@ -41,7 +42,10 @@ export const Login = () => {
         email: data.email,
         password: data.password,
       });
-      navigate("/game");
+
+      // Redirect to intended page or default to game
+      const from = location.state?.from?.pathname || "/game";
+      navigate(from, { replace: true });
     } catch (_error) {
       // error handled via mutation state
     }
