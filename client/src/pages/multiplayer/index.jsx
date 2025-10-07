@@ -27,10 +27,10 @@ const MultiplayerSetup = () => {
       newSocket.emit("get-rooms");
     });
 
-    newSocket.on("disconnect", () => {
-      console.log("Disconnected from server");
-      setIsConnected(false);
-    });
+    // newSocket.on("disconnect", () => {
+    //   console.log("Disconnected from server");
+    //   setIsConnected(false);
+    // });
 
     // Listen for rooms list
     newSocket.on("rooms-list", (rooms) => {

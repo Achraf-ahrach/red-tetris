@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Board from "@/components/game/Board";
 import GameStats from "@/components/game/GameStats";
 import { BOARD_WIDTH } from "@/types";
+import { io, Socket } from "socket.io-client";
 import {
   createEmptyBoard,
   getRandomTetromino,
@@ -18,10 +19,8 @@ import {
 
 function MultiplayerGame({ roomName, playerName }) {
   const navigate = useNavigate();
-  console.log("Room Name:", roomName);
-  console.log("Player Name:", playerName);
-
-  // const isHost = "false";
+  // console.log("Room Name:", roomName);
+  // console.log("Player Name:", playerName);
 
   // Player 1 (local player) state
   const [p1Board, setP1Board] = useState(createEmptyBoard);
@@ -48,30 +47,103 @@ function MultiplayerGame({ roomName, playerName }) {
   const [isPaused, setIsPaused] = useState(false);
   const [opponent, setOpponent] = useState(null);
   const [gameWinner, setGameWinner] = useState(null);
+  const [socket, setSocket] = useState(null);
 
-  // Simulate opponent joining (for demo purposes)
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     if (isHost) {
-  //       setOpponent({ name: "Player2", connected: true });
-  //     } else {
-  //       setOpponent({ name: "Host", connected: true });
-  //     }
-  //   }, 2000);
+  // Socket connection and room management
+  useEffect(() => {
+    const newSocket = io("http://localhost:3000", {
+      query: { nickname: playerName },
+    });
 
-  //   return () => clearTimeout(timer);
-  // }, [isHost]);
+    setSocket(newSocket);
+
+    // Join the room
+    newSocket.emit("join-room", {
+      roomId: roomName,
+      nickname: playerName,
+    });
+
+    // Handle successful room join
+    newSocket.on("joined-room", (data) => {
+      console.log("Joined room:", data);
+      // If there are 2 players, set opponent
+      if (data.room.playerCount === 2) {
+        const opponentPlayer = data.room.players.find(
+          (player) => player.id !== newSocket.id
+        );
+        setOpponent(opponentPlayer);
+      }
+    });
+
+    // Handle when another player joins
+    newSocket.on("player-joined", (data) => {
+      console.log("Player joined:", data);
+      setOpponent(data.player);
+    });
+
+    // Handle player ready state changes
+    newSocket.on("player-ready-changed", (data) => {
+      console.log("Player ready changed:", data);
+      if (data.playerId !== newSocket.id) {
+        // Update opponent ready state
+        setOpponent((prev) => (prev ? { ...prev, ready: data.ready } : null));
+      }
+    });
+
+    // Handle when player leaves
+    newSocket.on("player-left", (data) => {
+      console.log("Player left:", data);
+      setOpponent(null);
+      setGameStarted(false);
+      setGameWinner(null);
+    });
+
+    // Handle game start
+    newSocket.on("game-start", (data) => {
+      console.log("Game starting:", data);
+      setGameStarted(true);
+      initializeGame();
+    });
+
+    // Handle opponent game updates
+    // newSocket.on("game-update", (data) => {
+    //   if (data.playerId !== newSocket.id) {
+    //     // Update opponent's game state
+    //     if (data.gameData.score !== undefined) setP2Score(data.gameData.score);
+    //     if (data.gameData.lines !== undefined) setP2Lines(data.gameData.lines);
+    //     if (data.gameData.level !== undefined) setP2Level(data.gameData.level);
+    //   }
+    // });
+
+    // Handle game over
+    newSocket.on("game-over", (data) => {
+      console.log("Game over:", data);
+      if (data.playerId !== newSocket.id) {
+        setP2GameOver(true);
+        setGameWinner(playerName);
+      }
+    });
+
+    // Handle join room errors
+    newSocket.on("join-room-error", (data) => {
+      console.error("Join room error:", data);
+      navigate("/multiplayer");
+    });
+
+    // Cleanup on unmount
+    return () => {
+      newSocket.emit("leave-room");
+      newSocket.disconnect();
+    };
+  }, [roomName, playerName, navigate]);
 
   // Initialize game for both players
   const initializeGame = useCallback(() => {
     const newBoard1 = createEmptyBoard();
-    const newBoard2 = createEmptyBoard();
     const firstPiece1 = getRandomTetromino();
     const secondPiece1 = getRandomTetromino();
-    const firstPiece2 = getRandomTetromino();
-    const secondPiece2 = getRandomTetromino();
 
-    // Player 1
+    // Player 1 (local player)
     setP1Board(newBoard1);
     setP1CurrentPiece(firstPiece1);
     setP1NextPiece(secondPiece1);
@@ -81,18 +153,14 @@ function MultiplayerGame({ roomName, playerName }) {
     setP1Lines(0);
     setP1GameOver(false);
 
-    // Player 2 (simulated)
-    setP2Board(newBoard2);
-    setP2CurrentPiece(firstPiece2);
-    setP2NextPiece(secondPiece2);
-    setP2CurrentPosition({ x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 });
+    // Reset Player 2 state (opponent will send their own updates)
+    setP2Board(createEmptyBoard());
     setP2Score(0);
     setP2Level(1);
     setP2Lines(0);
     setP2GameOver(false);
 
     setIsPaused(false);
-    setGameStarted(true);
     setGameWinner(null);
   }, []);
 
@@ -181,23 +249,53 @@ function MultiplayerGame({ roomName, playerName }) {
     const completedLines = findCompletedLines(newBoard);
 
     let finalBoard = newBoard;
+    let newScore = p1Score;
+    let newLines = p1Lines;
+    let newLevel = p1Level;
+
     if (completedLines.length > 0) {
       finalBoard = clearLines(newBoard, completedLines);
-      const newLines = p1Lines + completedLines.length;
-      const newLevel = Math.floor(newLines / 10) + 1;
+      newLines = p1Lines + completedLines.length;
+      newLevel = Math.floor(newLines / 10) + 1;
       const lineScore = calculateScore(completedLines.length, p1Level);
+      newScore = p1Score + lineScore;
 
       setP1Lines(newLines);
       setP1Level(newLevel);
-      setP1Score((prev) => prev + lineScore);
+      setP1Score(newScore);
+
+      // Send line clear attack to opponent via socket
+      if (socket && completedLines.length > 1) {
+        socket.emit("line-clear", {
+          lines: completedLines.length,
+        });
+      }
     }
 
     setP1Board(finalBoard);
 
+    // Send game update to opponent
+    if (socket) {
+      socket.emit("game-update", {
+        score: newScore,
+        lines: newLines,
+        level: newLevel,
+        board: finalBoard,
+      });
+    }
+
     // Check game over
     if (checkGameOver(finalBoard)) {
       setP1GameOver(true);
-      setGameWinner(opponent ? opponent.name : "Player 2");
+      setGameWinner(opponent ? opponent.nickname : "Player 2");
+
+      // Send game over to server
+      if (socket) {
+        socket.emit("game-over", {
+          winner: opponent ? opponent.nickname : "Player 2",
+          score: newScore,
+        });
+      }
       return;
     }
 
@@ -215,110 +313,20 @@ function MultiplayerGame({ roomName, playerName }) {
     p1NextPiece,
     p1Lines,
     p1Level,
+    p1Score,
     opponent,
+    socket,
   ]);
 
-  // Simulate Player 2 (opponent) gameplay
-  const simulateP2Move = useCallback(() => {
-    if (!p2CurrentPiece || p2GameOver || gameWinner) return;
+  // Player ready system
+  const [isReady, setIsReady] = useState(false);
 
-    // Simple AI: move randomly or drop
-    const actions = ["left", "right", "down", "rotate", "drop"];
-    const randomAction = actions[Math.floor(Math.random() * actions.length)];
-
-    let moved = false;
-    const newPosition = { ...p2CurrentPosition };
-
-    switch (randomAction) {
-      case "left":
-        newPosition.x -= 1;
-        if (isValidMove(p2Board, p2CurrentPiece.shape, newPosition)) {
-          setP2CurrentPosition(newPosition);
-          moved = true;
-        }
-        break;
-      case "right":
-        newPosition.x += 1;
-        if (isValidMove(p2Board, p2CurrentPiece.shape, newPosition)) {
-          setP2CurrentPosition(newPosition);
-          moved = true;
-        }
-        break;
-      case "down":
-        newPosition.y += 1;
-        if (isValidMove(p2Board, p2CurrentPiece.shape, newPosition)) {
-          setP2CurrentPosition(newPosition);
-          moved = true;
-        }
-        break;
-      case "rotate":
-        const rotatedShape = rotatePiece(p2CurrentPiece.shape);
-        if (isValidMove(p2Board, rotatedShape, p2CurrentPosition)) {
-          setP2CurrentPiece((prev) => ({ ...prev, shape: rotatedShape }));
-          moved = true;
-        }
-        break;
-      case "drop":
-        // Auto drop handled by game loop
-        break;
+  const handlePlayerReady = () => {
+    if (socket && opponent) {
+      setIsReady(!isReady);
+      socket.emit("player-ready");
     }
-
-    // Auto drop
-    if (!moved && Math.random() > 0.3) {
-      newPosition.y += 1;
-      if (isValidMove(p2Board, p2CurrentPiece.shape, newPosition)) {
-        setP2CurrentPosition(newPosition);
-      } else {
-        // Lock piece
-        const newBoard = placePiece(
-          p2Board,
-          p2CurrentPiece.shape,
-          p2CurrentPosition,
-          p2CurrentPiece.color
-        );
-        const completedLines = findCompletedLines(newBoard);
-
-        let finalBoard = newBoard;
-        if (completedLines.length > 0) {
-          finalBoard = clearLines(newBoard, completedLines);
-          const newLines = p2Lines + completedLines.length;
-          const newLevel = Math.floor(newLines / 10) + 1;
-          const lineScore = calculateScore(completedLines.length, p2Level);
-
-          setP2Lines(newLines);
-          setP2Level(newLevel);
-          setP2Score((prev) => prev + lineScore);
-        }
-
-        setP2Board(finalBoard);
-
-        // Check game over
-        if (checkGameOver(finalBoard)) {
-          setP2GameOver(true);
-          setGameWinner(playerName);
-          return;
-        }
-
-        // Get next piece
-        const newPiece = p2NextPiece;
-        const nextNewPiece = getRandomTetromino();
-
-        setP2CurrentPiece(newPiece);
-        setP2NextPiece(nextNewPiece);
-        setP2CurrentPosition({ x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 });
-      }
-    }
-  }, [
-    p2Board,
-    p2CurrentPiece,
-    p2CurrentPosition,
-    p2NextPiece,
-    p2Lines,
-    p2Level,
-    p2GameOver,
-    gameWinner,
-    playerName,
-  ]);
+  };
 
   // Game loops
   useEffect(() => {
@@ -339,26 +347,6 @@ function MultiplayerGame({ roomName, playerName }) {
     moveP1Piece,
     lockP1Piece,
     p1Level,
-    gameWinner,
-  ]);
-
-  // Player 2 simulation loop
-  useEffect(() => {
-    if (!gameStarted || p2GameOver || isPaused || !opponent || gameWinner)
-      return;
-
-    const interval = setInterval(() => {
-      simulateP2Move();
-    }, getDropSpeed(p2Level) * 0.8); // Slightly faster for variation
-
-    return () => clearInterval(interval);
-  }, [
-    gameStarted,
-    p2GameOver,
-    isPaused,
-    simulateP2Move,
-    p2Level,
-    opponent,
     gameWinner,
   ]);
 
@@ -403,7 +391,12 @@ function MultiplayerGame({ roomName, playerName }) {
   }, [gameStarted, moveP1Piece, rotateP1Piece, hardDropP1]);
 
   const handleRestart = () => {
-    initializeGame();
+    setGameStarted(false);
+    setGameWinner(null);
+    setIsReady(false);
+    if (socket) {
+      socket.emit("room-reset");
+    }
   };
 
   const handleLeaveRoom = () => {
@@ -475,15 +468,53 @@ function MultiplayerGame({ roomName, playerName }) {
         {/* Game Area */}
         {opponent && (
           <>
-            {/* Start Game Button */}
+            {/* Ready/Start Game Section */}
             {!gameStarted && !gameWinner && (
               <div className="text-center mb-8">
-                <button
-                  onClick={initializeGame}
-                  className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xl font-bold rounded-xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105"
-                >
-                  START BATTLE!
-                </button>
+                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20 shadow-2xl inline-block">
+                  <h3 className="text-xl font-bold mb-4">Ready to Battle?</h3>
+                  <div className="flex items-center justify-center gap-6 mb-4">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-300 mb-1">You</p>
+                      <div
+                        className={`w-4 h-4 rounded-full mx-auto ${
+                          isReady ? "bg-green-500" : "bg-red-500"
+                        }`}
+                      ></div>
+                      <p className="text-xs mt-1">
+                        {isReady ? "Ready" : "Not Ready"}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-300 mb-1">
+                        {opponent.nickname}
+                      </p>
+                      <div
+                        className={`w-4 h-4 rounded-full mx-auto ${
+                          opponent.ready ? "bg-green-500" : "bg-red-500"
+                        }`}
+                      ></div>
+                      <p className="text-xs mt-1">
+                        {opponent.ready ? "Ready" : "Not Ready"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handlePlayerReady}
+                    className={`px-6 py-3 text-white text-lg font-bold rounded-xl shadow-2xl transition-all duration-300 transform hover:scale-105 ${
+                      isReady
+                        ? "bg-gradient-to-r from-red-500 to-red-600 hover:shadow-red-500/25"
+                        : "bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-green-500/25"
+                    }`}
+                  >
+                    {isReady ? "NOT READY" : "READY!"}
+                  </button>
+                  {isReady && opponent.ready && (
+                    <p className="text-green-400 mt-3 font-semibold">
+                      🎮 Game will start automatically!
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
@@ -544,7 +575,7 @@ function MultiplayerGame({ roomName, playerName }) {
               <div className="flex flex-col items-center">
                 <div className="mb-4 text-center">
                   <h3 className="text-2xl font-bold text-red-400 mb-1">
-                    🤖 {opponent.name}
+                    👤 {opponent.nickname}
                   </h3>
                   <p className="text-sm text-gray-400">OPPONENT</p>
                 </div>
