@@ -4,6 +4,10 @@ import { Register } from "@/pages/auth/register";
 import GamePage from "@/pages/game";
 import { createBrowserRouter, Link } from "react-router-dom";
 import LandingPage from "@/pages/landing";
+import Profile from "@/pages/profile";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import AppLayout from "@/layouts/AppLayout";
+import Leaderboard from "@/pages/leaderboard";
 
 const router = createBrowserRouter([
   {
@@ -47,8 +51,25 @@ const router = createBrowserRouter([
     children: [{ index: true, element: <Register /> }],
   },
   {
-    path: "/game",
-    element: <GamePage />,
+    element: (
+      <ProtectedRoute useLayout={false}>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: "/game",
+        element: <GamePage />,
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/leaderboard",
+        element: <Leaderboard />,
+      },
+    ],
   },
 ]);
 

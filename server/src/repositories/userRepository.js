@@ -21,6 +21,22 @@ export class UserRepository {
     return result[0] || null;
   }
 
+  async findByFortyTwoId(fortyTwoId) {
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.fortyTwoId, fortyTwoId));
+    return result[0] || null;
+  }
+
+  // Alias methods for compatibility
+  async createUser(userData) {
+    return await this.create(userData);
+  }
+
+  async updateUser(id, userData) {
+    return await this.update(id, userData);
+  }
 
   async create(userData) {
     try {
