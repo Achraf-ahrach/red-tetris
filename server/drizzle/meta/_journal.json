@@ -50,6 +50,20 @@
       "when": 1759749343449,
       "tag": "0006_workable_dagger",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1759921650135,
+      "tag": "0007_closed_hiroim",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1759926380320,
+      "tag": "0008_dashing_mother_askani",
+      "breakpoints": true
     }
   ]
 }

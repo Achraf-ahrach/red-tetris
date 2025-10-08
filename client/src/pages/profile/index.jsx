@@ -1,10 +1,13 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import ProfileHeader from "../../components/profile/ProfileHeader";
 import StatsGrid from "../../components/profile/StatsGrid";
 import PerformanceCards from "../../components/profile/PerformanceCards";
 import AchievementsGrid from "../../components/profile/AchievementsGrid";
 import RecentMatches from "../../components/profile/RecentMatches";
+import { userAPI } from "../../services/api";
+import { getUserAchievementsWithDetails } from "../../constants/achievements";
 
 const stagger = {
   animate: {
@@ -14,125 +17,114 @@ const stagger = {
   },
 };
 
-// Mock user data
-const userData = {
-  name: "Alex Chen",
-  username: "tetris_master",
-  avatar: "/gamer-avatar.png",
-  level: 42,
-  xp: 7850,
-  xpToNextLevel: 10000,
-  rank: "Diamond",
-  joinDate: "Jan 2024",
-  stats: {
-    totalGames: 1247,
-    wins: 892,
-    highScore: 125840,
-    avgScore: 45230,
-    totalLines: 15420,
-    playTime: "156h",
-    winRate: 71.5,
-    currentStreak: 12,
-  },
-  achievements: [
-    {
-      id: 1,
-      name: "Speed Demon",
-      icon: "⚡",
-      unlocked: true,
-      rarity: "legendary",
-    },
-    {
-      id: 2,
-      name: "Perfect Clear",
-      icon: "🎯",
-      unlocked: true,
-      rarity: "epic",
-    },
-    {
-      id: 3,
-      name: "Marathon Master",
-      icon: "🏃",
-      unlocked: true,
-      rarity: "rare",
-    },
-    {
-      id: 4,
-      name: "Combo King",
-      icon: "🔥",
-      unlocked: false,
-      rarity: "legendary",
-    },
-    {
-      id: 5,
-      name: "Line Clearer",
-      icon: "✨",
-      unlocked: true,
-      rarity: "common",
-    },
-    {
-      id: 6,
-      name: "Tetris God",
-      icon: "👑",
-      unlocked: false,
-      rarity: "mythic",
-    },
-  ],
-  recentGames: [
-    {
-      id: 1,
-      mode: "Classic",
-      score: 89450,
-      lines: 142,
-      result: "win",
-      rank: "#12",
-      date: "2h ago",
-      opponentName: "Nova Byte",
-    },
-    {
-      id: 2,
-      mode: "Sprint",
-      score: 45230,
-      lines: 40,
-      result: "win",
-      rank: "#5",
-      date: "5h ago",
-      opponentName: "Pixel Pro",
-    },
-    {
-      id: 3,
-      mode: "Battle",
-      score: 67890,
-      lines: 98,
-      result: "loss",
-      rank: "#23",
-      date: "1d ago",
-      opponentName: "Stack Storm",
-    },
-    {
-      id: 4,
-      mode: "Classic",
-      score: 125840,
-      lines: 203,
-      result: "win",
-      rank: "#3",
-      date: "2d ago",
-      opponentName: "Block Boss",
-    },
-    {
-      id: 5,
-      mode: "Marathon",
-      score: 98760,
-      lines: 156,
-      result: "win",
-      rank: "#8",
-      date: "3d ago",
-      opponentName: "Tetrix AI",
-    },
-  ],
-};
-
 const Profile = () => {
+  const {
+    data: userData,
+    isLoading: loading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["me", "profile"],
+    queryFn: async () => {
+      const res = await userAPI.getCurrentUserProfile();
+      if (res?.error || res?.success === false) {
+        throw new Error(res?.data?.message || "Failed to load profile");
+      }
+      return res;
+    },
+    select: (response) => {
+      if (!response?.success) return null;
+      const profileData = response.data;
+
+      return {
+        name:
+          `${profileData.firstName || ""} ${
+            profileData.lastName || ""
+          }`.trim() || profileData.username,
+        username: profileData.username,
+        avatar: profileData.avatar || "/gamer-avatar.png",
+        level: profileData.stats.level,
+        xp: profileData.stats.experience,
+        xpToNextLevel: profileData.stats.expToNextLevel,
+        rank: profileData.performance.skillLevel,
+        joinDate: new Date(profileData.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        }),
+
+        stats: {
+          totalGames: profileData.stats.totalGames,
+          wins: profileData.stats.totalWins,
+          highScore: profileData.stats.highScore,
+          avgScore: Math.round(profileData.stats.highScore * 0.6),
+          totalLines: profileData.stats.totalLines,
+          playTime: profileData.stats.playTimeFormatted,
+          winRate: profileData.stats.winRate,
+          currentStreak: profileData.stats.currentStreak,
+        },
+
+        // Transform achievements using our enum
+        achievements: getUserAchievementsWithDetails(profileData.achievements),
+
+        // Performance data
+        performance: profileData.performance,
+
+        // No recent games since game sessions were removed
+        recentGames: [],
+      };
+    },
+  });
+
+  if (loading) {
+    return (
+      <div className="pl-16 relative z-10">
+        <div className="container mx-auto px-6 py-10 max-w-6xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-3 text-muted-foreground">
+              Loading profile...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="pl-16 relative z-10">
+        <div className="container mx-auto px-6 py-10 max-w-6xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-red-500 mb-2">Failed to load profile</p>
+              <p className="text-sm text-muted-foreground">
+                {error?.message || "Unknown error"}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="pl-16 relative z-10">
+        <div className="container mx-auto px-6 py-10 max-w-6xl">
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">No profile data available</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Subtle background grid overlay */}
@@ -156,7 +148,7 @@ const Profile = () => {
             />
           </motion.div>
           <AchievementsGrid userData={userData} />
-          <RecentMatches userData={userData} variants={stagger} />
+          {/* <RecentMatches userData={userData} variants={stagger} /> */}
         </div>
       </div>
     </>

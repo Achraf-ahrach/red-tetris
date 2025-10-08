@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, gt, desc } from "drizzle-orm";
 import { db } from "../config/database.js";
 import { users } from "../models/user.js";
 
@@ -38,6 +38,10 @@ export class UserRepository {
     return await this.update(id, userData);
   }
 
+  async getUserById(id) {
+    return await this.findById(id);
+  }
+
   async create(userData) {
     try {
       console.log("Creating user with data:", userData);
@@ -74,5 +78,23 @@ export class UserRepository {
 
   async findAll() {
     return await db.select().from(users);
+  }
+
+  async getLeaderboard(limit = 50) {
+    return await db
+      .select({
+        id: users.id,
+        username: users.username,
+        avatar: users.avatar,
+        highScore: users.highScore,
+        totalGames: users.totalGames,
+        totalWins: users.totalWins,
+        totalLosses: users.totalLosses,
+        level: users.level,
+      })
+      .from(users)
+      .where(gt(users.totalGames, 0)) // Only users who have played games
+      .orderBy(desc(users.highScore))
+      .limit(limit);
   }
 }
