@@ -9,11 +9,21 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/layouts/AppLayout";
 import Leaderboard from "@/pages/leaderboard";
 import GuestRoute from "@/components/GuestRoute";
+import Success from "@/pages/auth/success";
+import ErrorPage from "@/pages/auth/error";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <LandingPage />,
+  },
+  {
+    path: "auth/success",
+    element: <Success />,
+  },
+  {
+    path: "auth/error",
+    element: <ErrorPage />,
   },
   {
     path: "login",

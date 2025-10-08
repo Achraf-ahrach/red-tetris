@@ -135,4 +135,12 @@ export class UserService {
   async verifyPassword(plainPassword, hashedPassword) {
     return await bcrypt.compare(plainPassword, hashedPassword);
   }
+
+  async updateUser(id, userData) {
+    return await this.userRepository.update(id, userData);
+  }
+
+  async getLeaderboard(limit = 50) {
+    return await this.userRepository.getLeaderboard(limit);
+  }
 }
