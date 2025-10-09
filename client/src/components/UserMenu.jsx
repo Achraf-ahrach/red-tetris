@@ -22,11 +22,10 @@ export const UserMenu = () => {
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync();
-      navigate("/login");
+      // Redirect handled by useLogout onSettled via window.location.replace
     } catch (error) {
       console.error("Logout error:", error);
-      // The mutation handles token clearing automatically
-      navigate("/login");
+      // Fallback: nothing else to do; mutation clears tokens and redirects
     }
   };
 

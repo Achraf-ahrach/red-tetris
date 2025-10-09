@@ -53,7 +53,6 @@ export class UserController {
         });
       }
 
-      // Remove sensitive information before sending
       const { password, ...userWithoutPassword } = user;
 
       res.json({
@@ -354,11 +353,10 @@ export class UserController {
     // Experience from lines cleared
     experience += lines * 10;
 
-    // Time bonus (more experience for longer games, up to a limit)
+    // Time bonus 
     const timeBonus = Math.min(duration / 60, 10);
     experience += Math.floor(timeBonus);
 
-    // Win bonus
     if (result === "win") {
       experience += 50;
     }
@@ -470,4 +468,60 @@ export class UserController {
       return [];
     }
   }
+
+  // Get user game history
+  getUserGameHistory = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const limit = parseInt(req.query.limit ?? "20");
+      const offset = parseInt(req.query.offset ?? "0");
+
+      const rows = await this.userService.getGameHistory(parseInt(id), {
+        limit: isNaN(limit) ? 20 : limit,
+        offset: isNaN(offset) ? 0 : offset,
+      });
+
+      res.json({ success: true, data: rows });
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to fetch history",
+          error: error.message,
+        });
+    }
+  };
+
+  // Add user game history
+  addUserGameHistory = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        score = 0,
+        lines = 0,
+        duration = 0,
+        result = "loss",
+        level = 1,
+      } = req.body || {};
+
+      const entry = await this.userService.addGameHistory(parseInt(id), {
+        score: Number(score) || 0,
+        lines: Number(lines) || 0,
+        duration: Number(duration) || 0,
+        result: ["win", "loss"].includes(result) ? result : "loss",
+        level: Number(level) || 1,
+      });
+
+      res.status(201).json({ success: true, data: entry });
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to add history",
+          error: error.message,
+        });
+    }
+  };
 }

@@ -143,4 +143,12 @@ export class UserService {
   async getLeaderboard(limit = 50) {
     return await this.userRepository.getLeaderboard(limit);
   }
+
+  async addGameHistory(userId, payload) {
+    return this.userRepository.addGameHistory({ userId, ...payload });
+  }
+
+  async getGameHistory(userId, options) {
+    return this.userRepository.getGameHistoryByUser(userId, options);
+  }
 }

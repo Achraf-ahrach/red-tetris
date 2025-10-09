@@ -1,6 +1,7 @@
 import { eq, gt, desc } from "drizzle-orm";
 import { db } from "../config/database.js";
 import { users } from "../models/user.js";
+import { gameHistory } from "../models/gameHistory.js";
 
 export class UserRepository {
   async findById(id) {
@@ -44,10 +45,8 @@ export class UserRepository {
 
   async create(userData) {
     try {
-      console.log("Creating user with data:", userData);
 
       const result = await db.insert(users).values(userData).returning();
-      console.log("Insert result:", { result, length: result.length });
 
       if (!result || result.length === 0) {
         throw new Error(
@@ -57,7 +56,6 @@ export class UserRepository {
 
       return result[0];
     } catch (error) {
-      console.error("Database insert error:", error);
       throw error;
     }
   }
@@ -93,8 +91,24 @@ export class UserRepository {
         level: users.level,
       })
       .from(users)
-      .where(gt(users.totalGames, 0)) // Only users who have played games
+      .where(gt(users.totalGames, 0))
       .orderBy(desc(users.highScore))
       .limit(limit);
+  }
+
+  async addGameHistory(entry) {
+    const [row] = await db.insert(gameHistory).values(entry).returning();
+    return row;
+  }
+
+  async getGameHistoryByUser(userId, { limit = 20, offset = 0 } = {}) {
+    const rows = await db
+      .select()
+      .from(gameHistory)
+      .where(eq(gameHistory.userId, userId))
+      .orderBy(desc(gameHistory.createdAt))
+      .limit(limit)
+      .offset(offset);
+    return rows;
   }
 }

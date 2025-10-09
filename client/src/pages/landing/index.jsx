@@ -4,11 +4,10 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { Leaderboard } from "@/components/landing/Leaderboard";
 import { MultiplayerMode } from "@/components/landing/MultiplayerMode";
 import { TetrisBlock } from "@/components/TetrisBlock";
+import { PageTransition } from "@/components/ui/page-transition";
 import { motion } from "motion/react";
 
 const LandingPage = () => {
-
-  
   const pieceShapes = {
     I: [
       [0, 0],
@@ -113,13 +112,13 @@ const LandingPage = () => {
       </div>
 
       {/* Main content with higher z-index */}
-      <div className="relative z-10">
+      <PageTransition variant="fade" className="relative z-10">
         <HeroSection />
         <ClassicGame />
         <MultiplayerMode />
         <Leaderboard />
         <CTA />
-      </div>
+      </PageTransition>
     </div>
   );
 };

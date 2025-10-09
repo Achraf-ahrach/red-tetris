@@ -39,7 +39,7 @@ export class AchievementRepository {
     return result[0];
   }
 
-  // Delete achievement (soft delete)
+  // Delete achievement
   async delete(id) {
     const result = await db
       .update(achievements)

@@ -1,11 +1,9 @@
 import React from "react";
-import Navbar from "@/components/Navbar";
 
 export const ProtectedLayout = ({ children, title }) => {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar title={title} />
-      <main className="flex-1">{children}</main>
+    <div className="min-h-screen bg-background">
+      <main className="relative pl-20 md:pl-24 xl:pl-28">{children}</main>
     </div>
   );
 };

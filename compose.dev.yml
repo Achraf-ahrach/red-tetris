@@ -14,9 +14,9 @@ services:
   server:
     build:
       context: ./server
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=3000
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
@@ -27,20 +27,37 @@ services:
       - "3000:3000"
     depends_on:
       - db
+    volumes:
+      - ./server:/app
+      - /app/node_modules
 
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
-      args:
-        VITE_API_BASE: /api
+      dockerfile: Dockerfile.dev
     environment:
-      - VITE_API_BASE=/api
+      - VITE_API_BASE=http://localhost:3000/api
     ports:
-      - "5173:80"
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
     depends_on:
       - server
 
+  drizzle-studio:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - PORT=8899
+    volumes:
+      - ./server:/app
+    command: sh -c "npx -y drizzle-kit@0.31.5 studio --host 0.0.0.0 --port 8899"
+    ports:
+      - "8899:8899"
+    depends_on:
+      - db
 
 volumes:
   pgdata:

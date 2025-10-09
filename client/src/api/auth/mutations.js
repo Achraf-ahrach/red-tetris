@@ -95,6 +95,13 @@ export const useLogout = () => {
       // Always clear tokens and cache on logout
       tokenUtils.clearTokens();
       queryClient.clear();
+      // Redirect to login (SPA-friendly)
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname !== "/login"
+      ) {
+        window.location.replace("/login");
+      }
     },
   });
 };
