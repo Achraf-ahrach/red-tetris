@@ -11,6 +11,7 @@ import Leaderboard from "@/pages/leaderboard";
 import GuestRoute from "@/components/GuestRoute";
 import Success from "@/pages/auth/success";
 import ErrorPage from "@/pages/auth/error";
+import NotFoundPage from "@/pages/NotFound";
 
 const router = createBrowserRouter([
   {
@@ -85,6 +86,10 @@ const router = createBrowserRouter([
         element: <Leaderboard />,
       },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
   },
 ]);
 

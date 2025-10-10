@@ -1,8 +1,15 @@
+// API service for user profile and game data using centralized apiClient
 import { apiGet, apiPost } from "@/lib/apiClient";
 
-// API service for user profile and game data via centralized api client
+const withQuery = (path, params = {}) => {
+  const q = new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v !== undefined && v !== null)
+    )
+  ).toString();
+  return q ? `${path}?${q}` : path;
+};
 
-// User profile API calls
 export const userAPI = {
   // Get comprehensive user profile data
   getCurrentUserProfile: async () => {
@@ -26,11 +33,15 @@ export const userAPI = {
 
   // Get leaderboard (public)
   getLeaderboard: async (limit = 50) => {
-    return apiGet(`/users/leaderboard?limit=${limit}`);
+    return apiGet(withQuery("/users/leaderboard", { limit }));
+  },
+
+  // Get user game history
+  getUserHistory: async (userId, { limit = 10, offset = 0 } = {}) => {
+    return apiGet(withQuery(`/users/${userId}/history`, { limit, offset }));
   },
 };
 
-// Achievement API calls
 export const achievementAPI = {
   // Get user's unlocked achievements
   getUserAchievements: async (userId) => {

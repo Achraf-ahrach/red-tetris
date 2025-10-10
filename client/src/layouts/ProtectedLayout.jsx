@@ -3,9 +3,11 @@ import Navbar from "@/components/Navbar";
 
 export const ProtectedLayout = ({ children, title }) => {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar title={title} />
-      <main className="flex-1">{children}</main>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="relative">
+        {children}
+      </main>
     </div>
   );
 };

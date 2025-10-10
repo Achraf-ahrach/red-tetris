@@ -37,6 +37,7 @@ const Profile = () => {
       const profileData = response.data;
 
       return {
+        id: profileData.id,
         name:
           `${profileData.firstName || ""} ${
             profileData.lastName || ""
@@ -63,17 +64,38 @@ const Profile = () => {
           currentStreak: profileData.stats.currentStreak,
         },
 
-        // Transform achievements using our enum
         achievements: getUserAchievementsWithDetails(profileData.achievements),
-
-        // Performance data
         performance: profileData.performance,
-
-        // No recent games since game sessions were removed
         recentGames: [],
       };
     },
   });
+
+  const { data: historyData } = useQuery({
+    queryKey: ["me", "history", userData?.id],
+    enabled: !!userData?.id,
+    queryFn: async () => {
+      const resMe = await userAPI.getCurrentUser();
+      const userId = resMe?.data?.id;
+      if (!userId) throw new Error("Missing user id");
+      const res = await userAPI.getUserHistory(userId, { limit: 10 });
+      if (res?.error)
+        throw new Error(res?.data?.message || "Failed to load history");
+      return res?.data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
+  const recentGames = (historyData || []).map((g) => ({
+    id: g.id,
+    mode: "Classic",
+    score: g.score,
+    lines: g.lines,
+    date: new Date(g.createdAt).toLocaleString(),
+    result: g.result,
+    rank: g.level ? `Lv ${g.level}` : "-",
+    opponent: null,
+  }));
 
   if (loading) {
     return (
@@ -148,7 +170,11 @@ const Profile = () => {
             />
           </motion.div>
           <AchievementsGrid userData={userData} />
-          {/* <RecentMatches userData={userData} variants={stagger} /> */}
+          {recentGames?.length > 0 && (
+            <div className="mt-8">
+              <RecentMatches userData={{ recentGames }} variants={stagger} />
+            </div>
+          )}
         </div>
       </div>
     </>

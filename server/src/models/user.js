@@ -19,7 +19,6 @@ export const users = pgTable("users", {
   password: varchar("password", { length: 255 }),
   avatar: text("avatar"),
 
-  // Game Statistics
   totalGames: integer("total_games").default(0),
   totalWins: integer("total_wins").default(0),
   totalLosses: integer("total_losses").default(0),
@@ -27,16 +26,15 @@ export const users = pgTable("users", {
   totalLines: integer("total_lines").default(0),
   currentStreak: integer("current_streak").default(0),
   longestStreak: integer("longest_streak").default(0),
-  totalPlayTime: integer("total_play_time").default(0), // in seconds
+  totalPlayTime: integer("total_play_time").default(0), 
   level: integer("level").default(1),
   experience: integer("experience").default(0),
-  achievements: json("achievements").default([]), // Array of achievement names
+  achievements: json("achievements").default([]), 
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Achievement enum - simple list of achievement names
 export const ACHIEVEMENTS = {
   FIRST_GAME: "first_game",
   FIRST_WIN: "first_win",
