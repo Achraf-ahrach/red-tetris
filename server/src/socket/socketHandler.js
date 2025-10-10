@@ -9,40 +9,40 @@ class GameRoom {
     this.gameData = new Map(); // playerId -> playerGameData
   }
 
-  addPlayer(socket, name) {
-    if (this.players.length === 2) {
-      throw new Error("Room is full");
-    }
+  // addPlayer(socket, name) {
+  //   if (this.players.length === 2) {
+  //     throw new Error("Room is full");
+  //   }
 
-    const player = {
-      id: socket.id, // unique player id
-      socketId: socket.id,
-      name: name || `Player ${this.players.length + 1}`,
-      ready: false,
-    };
+  //   const player = {
+  //     id: socket.id, // unique player id
+  //     socketId: socket.id,
+  //     name: name || `Player ${this.players.length + 1}`,
+  //     ready: false,
+  //   };
 
-    this.players.push(player);
-    this.gameData.set(player.socketId, {
-      ready: false,
-      score: 0,
-      lines: 0,
-      level: 1,
-    });
-    return player;
-  }
+  //   this.players.push(player);
+  //   this.gameData.set(player.socketId, {
+  //     ready: false,
+  //     score: 0,
+  //     lines: 0,
+  //     level: 1,
+  //   });
+  //   return player;
+  // }
 
   // removePlayer(socketId) {}
 
-  setPlayerReady(playerId) {
-    const data = this.gameData.get(playerId);
-    if (data) {
-      data.ready = true;
-      this.gameData.set(playerId, data);
+  setPlayerReady(userId) {
+    const GameData = this.gameData.get(userId);
+    if (GameData) {
+      GameData.ready = true;
+      this.gameData.set(userId, GameData);
     }
   }
 
-  getPlayer(playerId) {
-    return this.players.find((p) => p.id === playerId) || null;
+  getPlayer(userId) {
+    return this.players.find((p) => p.id === userId) || null;
   }
 
   isFull() {
@@ -56,21 +56,21 @@ class GameRoom {
   allPlayersReady() {
     if (this.players.length < 2) return false;
     return this.players.every((p) => {
-      const data = this.gameData.get(p.Socket_id);
-      return data && data.ready;
+      const GameData = this.gameData.get(p.Socket_id);
+      return GameData && GameData.ready;
     });
   }
 
   getRoomInfo() {
     return {
       id: this.id,
+      gameState: this.gameState,
       players: this.players.map((p) => ({
         id: p.id,
-        socketId: p.Socket_id,
         name: p.name,
-        ready: this.gameData.get(p.Socket_id)?.ready,
+        socketId: p.socketId,
+        ready: this.gameData.get(p.socketId)?.ready,
       })),
-      gameState: this.gameState,
     };
   }
 }
