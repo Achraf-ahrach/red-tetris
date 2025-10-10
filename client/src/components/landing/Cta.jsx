@@ -2,11 +2,13 @@ import { AnimatedSection } from "../AnimatedSection"
 import { motion } from 'motion/react'
 import { Button } from "../ui/button"
 import { Play } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 
 
 
 export const CTA = () => {
+  const navigate = useNavigate()
 
   return (
     <AnimatedSection className="py-20">
@@ -29,7 +31,7 @@ export const CTA = () => {
             whileInView={{ y: [0, -10, 0] }}
             transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           >
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-12 py-4 text-xl">
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-12 py-4 text-xl" onClick={() => navigate('/game')}>
               <Play className="w-6 h-6 mr-2" />
               Start Playing Now
             </Button>

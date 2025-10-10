@@ -5,20 +5,40 @@ export class AuthController {
     this.userService = new UserService();
   }
 
-  // 42 OAuth callback
+  // 42 OAuth callback - handles successful OAuth authentication
   fortyTwoCallback = async (req, res) => {
     try {
+      // req.user is populated by Passport.js after successful authentication
+      if (!req.user) {
+        console.error("42 OAuth callback: No user found in request");
+        const clientUrl = process.env.CLIENT_URL || "http://localhost:5173/";
+        return res.redirect(
+          `${clientUrl}auth/error?message=${encodeURIComponent(
+            "Authentication failed - no user data"
+          )}`
+        );
+      }
+
+      // Generate JWT tokens
       const accessToken = this.userService.generateJWT(req.user);
       const refreshToken = this.userService.generateRefreshToken(req.user);
-      res.json({
-        accessToken,
-        refreshToken,
-      });
+
+      // Redirect to frontend with tokens in URL
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173/";
+      const redirectUrl = `${clientUrl}auth/success?token=${encodeURIComponent(
+        accessToken
+      )}&refresh=${encodeURIComponent(refreshToken)}`;
+
+      console.log("Redirecting to:", redirectUrl);
+      res.redirect(redirectUrl);
     } catch (error) {
-      res.status(500).json({
-        message: "Authentication failed",
-        error: error.message,
-      });
+      console.error("42 OAuth callback error:", error);
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173/";
+      res.redirect(
+        `${clientUrl}auth/error?message=${encodeURIComponent(
+          "Authentication failed"
+        )}`
+      );
     }
   };
 
@@ -113,11 +133,19 @@ export class AuthController {
         });
       }
 
+      const user = await this.userService.registerUser({
+        firstName,
+        lastName,
+        username,
+        password,
+        email,
+      });
+
+      console.log({ user });
       res.status(201).json({
         message: "User registered successfully",
       });
     } catch (error) {
-      console.error("Registration error:", error);
       res.status(400).json({
         success: false,
         message: error.message,

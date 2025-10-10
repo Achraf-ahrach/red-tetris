@@ -11,11 +11,14 @@ router.post("/register", authController.register);
 router.post("/login", authController.login);
 
 // 42 OAuth routes
-router.get("/42", passport.authenticate("42"));
+router.get("/42", passport.authenticate("42", { scope: ["public"] }));
 router.get(
   "/42/callback",
   passport.authenticate("42", {
-    failureRedirect: `${process.env.CLIENT_URL}/auth/error`,
+    session: false,
+    failureRedirect: `${
+      process.env.CLIENT_URL || "http://localhost:5173/"
+    }auth/error`,
   }),
   authController.fortyTwoCallback
 );

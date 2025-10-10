@@ -42,7 +42,6 @@ export const optionalAuth = async (req, res, next) => {
       const user = await userService.getUserById(decoded.id);
       req.user = user;
     } catch (error) {
-      // Continue without user
     }
   }
   
