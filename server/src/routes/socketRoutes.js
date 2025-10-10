@@ -1,5 +1,4 @@
-import express from 'express';
-import SocketHandler from '../socket/socketHandler.js';
+import express from "express";
 
 const router = express.Router();
 
@@ -11,53 +10,53 @@ export const setSocketHandler = (handler) => {
 };
 
 // Get all rooms
-router.get('/rooms', (req, res) => {
+router.get("/rooms", (req, res) => {
   if (!socketHandler) {
     return res.status(500).json({
       success: false,
-      message: 'Socket handler not initialized'
+      message: "Socket handler not initialized",
     });
   }
 
   const rooms = socketHandler.getRooms();
   res.json({
     success: true,
-    data: rooms
+    data: rooms,
   });
 });
 
 // Get specific room info
-router.get('/rooms/:roomId', (req, res) => {
-  if (!socketHandler) {
-    return res.status(500).json({
-      success: false,
-      message: 'Socket handler not initialized'
-    });
-  }
+// router.get('/rooms/:roomId', (req, res) => {
+//   if (!socketHandler) {
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Socket handler not initialized'
+//     });
+//   }
 
-  const { roomId } = req.params;
-  const room = socketHandler.getRoom(roomId);
-  
-  if (!room) {
-    return res.status(404).json({
-      success: false,
-      message: 'Room not found'
-    });
-  }
+//   const { roomId } = req.params;
+//   const room = socketHandler.getRoom(roomId);
 
-  res.json({
-    success: true,
-    data: room
-  });
-});
+//   if (!room) {
+//     return res.status(404).json({
+//       success: false,
+//       message: 'Room not found'
+//     });
+//   }
+
+//   res.json({
+//     success: true,
+//     data: room
+//   });
+// });
 
 // Health check for socket server
-router.get('/socket/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Socket server is running',
-    timestamp: new Date().toISOString()
-  });
-});
+// router.get('/socket/health', (req, res) => {
+//   res.json({
+//     success: true,
+//     message: 'Socket server is running',
+//     timestamp: new Date().toISOString()
+//   });
+// });
 
 export default router;
