@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 const LoadingSpinner = ({ size = "md", className = "" }) => {
   const sizeClasses = {
     sm: "w-4 h-4",
-    md: "w-6 h-6",
+    md: "w-6 h-6", 
     lg: "w-8 h-8",
-    xl: "w-12 h-12",
+    xl: "w-12 h-12"
   };
 
   return (
@@ -16,7 +16,7 @@ const LoadingSpinner = ({ size = "md", className = "" }) => {
       transition={{
         duration: 1,
         repeat: Infinity,
-        ease: "linear",
+        ease: "linear"
       }}
     >
       <svg
@@ -52,12 +52,12 @@ const LoadingDots = ({ className = "" }) => {
           className="w-2 h-2 bg-primary rounded-full"
           animate={{
             scale: [1, 1.2, 1],
-            opacity: [0.5, 1, 0.5],
+            opacity: [0.5, 1, 0.5]
           }}
           transition={{
             duration: 1,
             repeat: Infinity,
-            delay: i * 0.2,
+            delay: i * 0.2
           }}
         />
       ))}

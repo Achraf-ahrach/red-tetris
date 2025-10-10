@@ -4,10 +4,22 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Trophy, Medal, Crown, AlertCircle } from "lucide-react";
+import { Trophy, Medal, Crown } from "lucide-react";
 import { userAPI } from "../../services/api";
-import { LoadingSpinner } from "@/components/ui/loading";
-  
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.04,
+    },
+  },
+};
 
 const getRankIcon = (rank) => {
   if (rank === 1) return <Crown className="w-6 h-6 text-yellow-400" />;
@@ -24,24 +36,6 @@ const getWinRateColor = (rate) => {
   if (rate >= 70) return "text-yellow-500";
   return "text-orange-500";
 };
-
-const LoadingSection = () => (
-  <div className="flex items-center justify-center py-16">
-    <div className="flex items-center gap-3 text-muted-foreground">
-      <LoadingSpinner />
-      <span>Loading leaderboard…</span>
-    </div>
-  </div>
-);
-
-const ErrorSection = ({ message }) => (
-  <div className="flex items-center justify-center py-16">
-    <div className="flex items-center gap-3 text-destructive">
-      <AlertCircle className="w-5 h-5" />
-      <span>{message || "Failed to load leaderboard"}</span>
-    </div>
-  </div>
-);
 
 export default function LeaderboardPage() {
   const limit = 50;
@@ -91,29 +85,8 @@ export default function LeaderboardPage() {
 
   const topThree = leaderboardData.slice(0, 3);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-12">
-          <LoadingSection />
-        </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-12">
-          <ErrorSection message={error?.message} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-10">
         {[...Array(8)].map((_, i) => (
           <motion.div
@@ -291,18 +264,18 @@ export default function LeaderboardPage() {
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="sticky top-0 bg-card/95 backdrop-blur-sm">
+                    <thead>
                       <tr className="border-b border-border/50">
-                        <th className="text-left p-3 md:p-4 font-semibold text-muted-foreground">
+                        <th className="text-left p-4 font-semibold text-muted-foreground">
                           Rank
                         </th>
-                        <th className="text-left p-3 md:p-4 font-semibold text-muted-foreground">
+                        <th className="text-left p-4 font-semibold text-muted-foreground">
                           Player
                         </th>
-                        <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground">
+                        <th className="text-right p-4 font-semibold text-muted-foreground">
                           Score
                         </th>
-                        <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground">
+                        <th className="text-right p-4 font-semibold text-muted-foreground">
                           Win Rate
                         </th>
                       </tr>
@@ -314,21 +287,17 @@ export default function LeaderboardPage() {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{
-                            delay: 0.05 + index * 0.02,
-                            duration: 0.25,
+                            delay: 0.5 + index * 0.05,
+                            duration: 0.3,
                           }}
-                          className={`border-b border-border/30 hover:bg-primary/5 transition-colors duration-150 ${
-                            index % 2 === 0
-                              ? "bg-background/30"
-                              : "bg-background/20"
-                          }`}
+                          className="border-b border-border/30 hover:bg-primary/5 transition-colors duration-200"
                         >
-                          <td className="p-3 md:p-4">
+                          <td className="p-4">
                             <div className="flex items-center justify-start">
                               {getRankIcon(player.rank)}
                             </div>
                           </td>
-                          <td className="p-3 md:p-4">
+                          <td className="p-4">
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10 border-2 border-primary/30">
                                 <AvatarImage
@@ -340,23 +309,21 @@ export default function LeaderboardPage() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-semibold leading-tight">
-                                  {player.name}
-                                </p>
+                                <p className="font-semibold">{player.name}</p>
                                 <p className="text-xs text-muted-foreground">
                                   @{player.username}
                                 </p>
                               </div>
                             </div>
                           </td>
-                          <td className="p-3 md:p-4 text-right">
-                            <span className="text-primary font-bold">
+                          <td className="p-4 text-right">
+                            <span className="text-primary font-bold text-lg">
                               {Number(player.score || 0).toLocaleString()}
                             </span>
                           </td>
-                          <td className="p-3 md:p-4 text-right">
+                          <td className="p-4 text-right">
                             <span
-                              className={`font-bold ${getWinRateColor(
+                              className={`font-bold text-lg ${getWinRateColor(
                                 player.winRate || 0
                               )}`}
                             >

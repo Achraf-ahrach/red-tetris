@@ -12,7 +12,7 @@ const shortcuts = [
       { keys: ["Alt", "3"], description: "Go to Leaderboard" },
       { keys: ["Alt", "4"], description: "Go to Profile" },
       { keys: ["Alt", "D"], description: "Toggle Navigation Dock (Desktop)" },
-    ],
+    ]
   },
   {
     category: "General",
@@ -20,8 +20,8 @@ const shortcuts = [
       { keys: ["?"], description: "Show/Hide this help" },
       { keys: ["Esc"], description: "Close modals and menus" },
       { keys: ["Tab"], description: "Navigate between elements" },
-    ],
-  },
+    ]
+  }
 ];
 
 const KeyboardShortcut = ({ keys }) => {
@@ -29,9 +29,7 @@ const KeyboardShortcut = ({ keys }) => {
     <div className="flex items-center gap-1">
       {keys.map((key, index) => (
         <React.Fragment key={key}>
-          {index > 0 && (
-            <span className="text-muted-foreground text-xs">+</span>
-          )}
+          {index > 0 && <span className="text-muted-foreground text-xs">+</span>}
           <kbd className="inline-flex items-center px-2 py-1 text-xs font-medium text-foreground bg-muted border border-border rounded shadow-sm">
             {key}
           </kbd>
@@ -54,7 +52,7 @@ const KeyboardShortcutsModal = ({ isOpen, onClose }) => {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
             onClick={onClose}
           />
-
+          
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -79,7 +77,7 @@ const KeyboardShortcutsModal = ({ isOpen, onClose }) => {
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-
+              
               {/* Content */}
               <div className="p-4 space-y-6 max-h-96 overflow-y-auto">
                 {shortcuts.map((category) => (
@@ -103,15 +101,11 @@ const KeyboardShortcutsModal = ({ isOpen, onClose }) => {
                   </div>
                 ))}
               </div>
-
+              
               {/* Footer */}
               <div className="p-4 border-t border-border bg-muted/50">
                 <p className="text-xs text-muted-foreground text-center">
-                  Press{" "}
-                  <kbd className="px-1 py-0.5 text-xs bg-background border rounded">
-                    ?
-                  </kbd>{" "}
-                  to toggle this help
+                  Press <kbd className="px-1 py-0.5 text-xs bg-background border rounded">?</kbd> to toggle this help
                 </p>
               </div>
             </div>
@@ -128,28 +122,23 @@ export const KeyboardShortcutsProvider = ({ children }) => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       // Show help with ? key
-      if (
-        event.key === "?" &&
-        !event.ctrlKey &&
-        !event.altKey &&
-        !event.metaKey
-      ) {
+      if (event.key === '?' && !event.ctrlKey && !event.altKey && !event.metaKey) {
         // Don't trigger if user is typing in an input
-        if (["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)) {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
           return;
         }
         event.preventDefault();
-        setIsOpen((prev) => !prev);
+        setIsOpen(prev => !prev);
       }
-
+      
       // Close with Escape
-      if (event.key === "Escape" && isOpen) {
+      if (event.key === 'Escape' && isOpen) {
         setIsOpen(false);
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
   return (

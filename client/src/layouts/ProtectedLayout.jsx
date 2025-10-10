@@ -1,9 +1,13 @@
 import React from "react";
+import Navbar from "@/components/Navbar";
 
 export const ProtectedLayout = ({ children, title }) => {
   return (
     <div className="min-h-screen bg-background">
-      <main className="relative pl-20 md:pl-24 xl:pl-28">{children}</main>
+      <Navbar />
+      <main className="relative">
+        {children}
+      </main>
     </div>
   );
 };

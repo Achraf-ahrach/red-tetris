@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import BottomDock from "@/components/BottomDock";
-import Navbar from "@/components/Navbar";
 
 const AppLayout = () => {
   const location = useLocation();
@@ -9,22 +8,19 @@ const AppLayout = () => {
   // Add smooth scrolling and focus management for better UX
   useEffect(() => {
     // Scroll to top on route change
-    window.scrollTo({ top: 0, behavior: "smooth" });
-
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     // Focus management for accessibility
-    const mainElement = document.querySelector("main");
+    const mainElement = document.querySelector('main');
     if (mainElement) {
       mainElement.focus();
     }
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground antialiased">
-      {/* Left fixed navbar (vertical rail) */}
-      <Navbar />
-
-      <main
-        className="flex-1 relative focus:outline-none pl-20 md:pl-24 xl:pl-28"
+    <div className="min-h-screen flex flex-col bg-background text-foreground text-render-optimized selection-primary smooth-scroll">
+      <main 
+        className="flex-1 relative focus:outline-none" 
         tabIndex={-1}
         role="main"
         aria-label="Main content"
@@ -33,8 +29,7 @@ const AppLayout = () => {
           <Outlet />
         </div>
       </main>
-
-      {/* <BottomDock /> */}
+      <BottomDock />
     </div>
   );
 };

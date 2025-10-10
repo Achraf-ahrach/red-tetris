@@ -5,9 +5,12 @@ import { Leaderboard } from "@/components/landing/Leaderboard";
 import { MultiplayerMode } from "@/components/landing/MultiplayerMode";
 import { TetrisBlock } from "@/components/TetrisBlock";
 import { PageTransition } from "@/components/ui/page-transition";
+import { Navbar } from "@/components/Navbar";
 import { motion } from "motion/react";
 
 const LandingPage = () => {
+
+  
   const pieceShapes = {
     I: [
       [0, 0],
@@ -87,6 +90,8 @@ const LandingPage = () => {
   ];
   return (
     <div className="relative">
+      <Navbar />
+      
       {/* Fixed background with falling pieces */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         {pieces.map((piece, i) => (

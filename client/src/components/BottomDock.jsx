@@ -4,29 +4,29 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Gamepad2, Trophy, User, Home, ChevronUp } from "lucide-react";
 
 const navigationItems = [
-  {
-    to: "/",
-    label: "Home",
+  { 
+    to: "/", 
+    label: "Home", 
     icon: Home,
-    description: "Return to homepage",
+    description: "Return to homepage"
   },
-  {
-    to: "/game",
-    label: "Play",
+  { 
+    to: "/game", 
+    label: "Play", 
     icon: Gamepad2,
-    description: "Start a new game",
+    description: "Start a new game"
   },
-  {
-    to: "/leaderboard",
-    label: "Leaderboard",
+  { 
+    to: "/leaderboard", 
+    label: "Leaderboard", 
     icon: Trophy,
-    description: "View top players",
+    description: "View top players"
   },
-  {
-    to: "/profile",
-    label: "Profile",
+  { 
+    to: "/profile", 
+    label: "Profile", 
     icon: User,
-    description: "Manage your account",
+    description: "Manage your account"
   },
 ];
 
@@ -41,10 +41,10 @@ const BottomDock = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
+    
     checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Auto-expand on mobile when navigating
@@ -67,16 +67,16 @@ const BottomDock = () => {
           navigate(navigationItems[keyNum - 1].to);
         }
       }
-
+      
       // Alt + D to toggle dock on desktop
-      if (event.altKey && event.key.toLowerCase() === "d" && !isMobile) {
+      if (event.altKey && event.key.toLowerCase() === 'd' && !isMobile) {
         event.preventDefault();
-        setIsExpanded((prev) => !prev);
+        setIsExpanded(prev => !prev);
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate, isMobile]);
 
   const handleNavigation = (to) => {
@@ -88,43 +88,43 @@ const BottomDock = () => {
   };
 
   const dockVariants = {
-    hidden: {
-      opacity: 0,
+    hidden: { 
+      opacity: 0, 
       y: 20,
-      scale: 0.95,
+      scale: 0.95
     },
-    visible: {
-      opacity: 1,
+    visible: { 
+      opacity: 1, 
       y: 0,
       scale: 1,
       transition: {
         type: "spring",
         stiffness: 400,
         damping: 30,
-        staggerChildren: 0.05,
-      },
+        staggerChildren: 0.05
+      }
     },
-    exit: {
-      opacity: 0,
+    exit: { 
+      opacity: 0, 
       y: 20,
       scale: 0.95,
       transition: {
-        duration: 0.2,
-      },
-    },
+        duration: 0.2
+      }
+    }
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
-    visible: {
-      opacity: 1,
+    visible: { 
+      opacity: 1, 
       y: 0,
       transition: {
         type: "spring",
         stiffness: 500,
-        damping: 30,
-      },
-    },
+        damping: 30
+      }
+    }
   };
 
   return (
@@ -136,9 +136,9 @@ const BottomDock = () => {
           onMouseLeave={() => setIsExpanded(false)}
         >
           {/* Invisible hover trigger zone */}
-          <div
-            className="w-full h-8 pointer-events-auto"
-            onMouseEnter={() => setIsExpanded(true)}
+          <div 
+            className="w-full h-8 pointer-events-auto" 
+            onMouseEnter={() => setIsExpanded(true)} 
           />
 
           <AnimatePresence>
@@ -154,54 +154,50 @@ const BottomDock = () => {
                 <div className="relative">
                   {/* Glass morphism background */}
                   <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/98 to-background/95 backdrop-blur-2xl rounded-2xl border border-border/50 shadow-2xl shadow-black/25" />
-
+                  
                   {/* Content */}
                   <div className="relative flex items-center gap-2 px-4 py-3">
-                    {navigationItems.map(
-                      ({ to, label, icon: Icon, description }) => {
-                        const isActive = pathname === to;
-                        return (
-                          <motion.button
-                            key={to}
-                            variants={itemVariants}
-                            onClick={() => handleNavigation(to)}
-                            className={`group relative inline-flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 ${
-                              isActive
-                                ? "text-primary bg-primary/10 shadow-lg shadow-primary/20"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent/60 hover:shadow-md"
-                            }`}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            aria-label={description}
-                          >
-                            <Icon
-                              className={`w-5 h-5 transition-transform ${
-                                isActive ? "scale-110" : "group-hover:scale-105"
-                              }`}
+                    {navigationItems.map(({ to, label, icon: Icon, description }) => {
+                      const isActive = pathname === to;
+                      return (
+                        <motion.button
+                          key={to}
+                          variants={itemVariants}
+                          onClick={() => handleNavigation(to)}
+                          className={`group relative inline-flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 ${
+                            isActive
+                              ? "text-primary bg-primary/10 shadow-lg shadow-primary/20"
+                              : "text-muted-foreground hover:text-foreground hover:bg-accent/60 hover:shadow-md"
+                          }`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          aria-label={description}
+                        >
+                          <Icon className={`w-5 h-5 transition-transform ${
+                            isActive ? "scale-110" : "group-hover:scale-105"
+                          }`} />
+                          
+                          {/* Active indicator */}
+                          {isActive && (
+                            <motion.div
+                              layoutId="desktop-dock-active"
+                              className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-primary"
+                              transition={{
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 30,
+                              }}
                             />
-
-                            {/* Active indicator */}
-                            {isActive && (
-                              <motion.div
-                                layoutId="desktop-dock-active"
-                                className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-primary"
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 500,
-                                  damping: 30,
-                                }}
-                              />
-                            )}
-
-                            {/* Enhanced tooltip */}
-                            <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-popover text-popover-foreground text-sm px-3 py-2 rounded-lg shadow-lg border backdrop-blur-sm whitespace-nowrap">
-                              <span className="font-medium">{label}</span>
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-popover" />
-                            </div>
-                          </motion.button>
-                        );
-                      }
-                    )}
+                          )}
+                          
+                          {/* Enhanced tooltip */}
+                          <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-popover text-popover-foreground text-sm px-3 py-2 rounded-lg shadow-lg border backdrop-blur-sm whitespace-nowrap">
+                            <span className="font-medium">{label}</span>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-popover" />
+                          </div>
+                        </motion.button>
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>
@@ -216,7 +212,7 @@ const BottomDock = () => {
           <div className="relative">
             {/* Glass morphism background */}
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/98 to-background/95 backdrop-blur-xl border-t border-border/50" />
-
+            
             {/* Content */}
             <div className="relative flex items-center justify-around px-4 py-3 safe-area-bottom">
               {navigationItems.map(({ to, label, icon: Icon }) => {
@@ -235,27 +231,23 @@ const BottomDock = () => {
                   >
                     <motion.div
                       className={`flex items-center justify-center w-8 h-8 rounded-lg mb-1 ${
-                        isActive
-                          ? "bg-primary/10 shadow-lg shadow-primary/20"
+                        isActive 
+                          ? "bg-primary/10 shadow-lg shadow-primary/20" 
                           : "group-hover:bg-accent/40"
                       }`}
                       whileHover={{ scale: 1.05 }}
                     >
-                      <Icon
-                        className={`w-5 h-5 transition-transform ${
-                          isActive ? "scale-110" : ""
-                        }`}
-                      />
+                      <Icon className={`w-5 h-5 transition-transform ${
+                        isActive ? "scale-110" : ""
+                      }`} />
                     </motion.div>
-
-                    <span
-                      className={`text-xs font-medium transition-colors ${
-                        isActive ? "text-primary" : "text-muted-foreground"
-                      }`}
-                    >
+                    
+                    <span className={`text-xs font-medium transition-colors ${
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    }`}>
                       {label}
                     </span>
-
+                    
                     {/* Active indicator */}
                     {isActive && (
                       <motion.div
@@ -273,7 +265,7 @@ const BottomDock = () => {
               })}
             </div>
           </div>
-
+          
           {/* Safe area spacing */}
           <div className="h-safe-area-inset-bottom" />
         </div>

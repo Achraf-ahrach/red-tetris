@@ -15,14 +15,16 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile.dev
+    env_file:
+      - ./.env
     environment:
       - NODE_ENV=development
       - PORT=3000
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
-      - FORTY_TWO_CLIENT_ID=${FORTY_TWO_CLIENT_ID}
-      - FORTY_TWO_CLIENT_SECRET=${FORTY_TWO_CLIENT_SECRET}
-      - FORTY_TWO_CALLBACK_URL=${FORTY_TWO_CALLBACK_URL}
+      - FORTY_TWO_CLIENT_ID=${FORTY_TWO_CLIENT_ID:-}
+      - FORTY_TWO_CLIENT_SECRET=${FORTY_TWO_CLIENT_SECRET:-}
+      - FORTY_TWO_CALLBACK_URL=${FORTY_TWO_CALLBACK_URL:-}
     ports:
       - "3000:3000"
     depends_on:
@@ -35,8 +37,6 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile.dev
-    environment:
-      - VITE_API_BASE=http://localhost:3000/api
     ports:
       - "5173:5173"
     volumes:
@@ -46,18 +46,29 @@ services:
       - server
 
   drizzle-studio:
-    image: node:20-alpine
-    working_dir: /app
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
-      - PORT=8899
+    container_name: red-tetris-drizzle-studio-dev
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    expose:
+      - 8899/tcp
+    ports:
+      - "127.0.0.1:8899:8899/tcp"
     volumes:
       - ./server:/app
-    command: sh -c "npx -y drizzle-kit@0.31.5 studio --host 0.0.0.0 --port 8899"
-    ports:
-      - "8899:8899"
+      - drizzle-node_modules:/app/node_modules/
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: ${DB_USER}
+      DB_NAME: ${DB_NAME}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+    restart: always
     depends_on:
       - db
+    command: sh -c "npm install && exec npx drizzle-kit studio --host 0.0.0.0 --port 8899"
 
 volumes:
   pgdata:
+  drizzle-node_modules:

@@ -15,12 +15,12 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     this.setState({
       error: error,
-      errorInfo: errorInfo,
+      errorInfo: errorInfo
     });
-
+    
     // Log error to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error Boundary caught an error:", error, errorInfo);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error Boundary caught an error:', error, errorInfo);
     }
   }
 
@@ -29,7 +29,7 @@ class ErrorBoundary extends React.Component {
   };
 
   handleGoHome = () => {
-    window.location.href = "/";
+    window.location.href = '/';
   };
 
   render() {
@@ -45,8 +45,9 @@ class ErrorBoundary extends React.Component {
                 Oops! Something went wrong
               </h1>
               <p className="text-muted-foreground mb-6">
-                {this.props.fallbackMessage ||
-                  "An unexpected error occurred. Please try refreshing the page or go back to the home page."}
+                {this.props.fallbackMessage || 
+                  "An unexpected error occurred. Please try refreshing the page or go back to the home page."
+                }
               </p>
             </div>
 
@@ -69,7 +70,7 @@ class ErrorBoundary extends React.Component {
               </Button>
             </div>
 
-            {process.env.NODE_ENV === "development" && this.state.error && (
+            {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-8 text-left">
                 <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
                   Show Error Details (Development Only)

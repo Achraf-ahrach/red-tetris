@@ -9,9 +9,9 @@ const LoadingPage = ({ message = "Loading Red Tetris..." }) => {
       opacity: 1,
       transition: {
         staggerChildren: 0.2,
-        delayChildren: 0.1,
-      },
-    },
+        delayChildren: 0.1
+      }
+    }
   };
 
   const itemVariants = {
@@ -21,9 +21,9 @@ const LoadingPage = ({ message = "Loading Red Tetris..." }) => {
       y: 0,
       transition: {
         duration: 0.6,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      },
-    },
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    }
   };
 
   const logoVariants = {
@@ -33,9 +33,9 @@ const LoadingPage = ({ message = "Loading Red Tetris..." }) => {
       opacity: 1,
       transition: {
         duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      },
-    },
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    }
   };
 
   return (
@@ -54,12 +54,12 @@ const LoadingPage = ({ message = "Loading Red Tetris..." }) => {
             <motion.div
               className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-2xl"
               animate={{
-                opacity: [0.3, 0.6, 0.3],
+                opacity: [0.3, 0.6, 0.3]
               }}
               transition={{
                 duration: 2,
                 repeat: Infinity,
-                ease: "easeInOut",
+                ease: "easeInOut"
               }}
             />
           </div>
@@ -81,7 +81,7 @@ const LoadingPage = ({ message = "Loading Red Tetris..." }) => {
         </motion.div>
 
         {/* Loading dots */}
-        <motion.div
+        <motion.div 
           variants={itemVariants}
           className="flex justify-center mt-8 space-x-1"
         >
@@ -91,13 +91,13 @@ const LoadingPage = ({ message = "Loading Red Tetris..." }) => {
               className="w-2 h-2 bg-primary/60 rounded-full"
               animate={{
                 scale: [1, 1.2, 1],
-                opacity: [0.6, 1, 0.6],
+                opacity: [0.6, 1, 0.6]
               }}
               transition={{
                 duration: 1.5,
                 repeat: Infinity,
                 delay: i * 0.2,
-                ease: "easeInOut",
+                ease: "easeInOut"
               }}
             />
           ))}

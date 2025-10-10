@@ -14,9 +14,9 @@ const NotFoundPage = () => {
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
+        delayChildren: 0.2
+      }
+    }
   };
 
   const itemVariants = {
@@ -26,9 +26,9 @@ const NotFoundPage = () => {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      },
-    },
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    }
   };
 
   return (
@@ -60,13 +60,13 @@ const NotFoundPage = () => {
               Page Not Found
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              The page you're looking for doesn't exist or has been moved. Let's
-              get you back to where you need to be.
+              The page you're looking for doesn't exist or has been moved. 
+              Let's get you back to where you need to be.
             </p>
           </motion.div>
 
           {/* Actions */}
-          <motion.div
+          <motion.div 
             variants={itemVariants}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
