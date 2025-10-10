@@ -90,7 +90,6 @@ const LandingPage = () => {
   ];
   return (
     <div className="relative">
-      <Navbar />
       
       {/* Fixed background with falling pieces */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">

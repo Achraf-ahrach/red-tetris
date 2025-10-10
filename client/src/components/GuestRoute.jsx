@@ -6,7 +6,7 @@ const GuestRoute = ({ children, redirectTo = "/profile" }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return null; // or a small spinner if desired
+  if (loading) return null; 
 
   if (isAuthenticated()) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
