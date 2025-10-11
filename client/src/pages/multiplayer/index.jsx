@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
+import { useQuery } from "@tanstack/react-query";
+import { userAPI } from "../../services/api";
+import { tr } from "zod/v4/locales";
 
 const MultiplayerSetup = () => {
   const navigate = useNavigate();
@@ -10,20 +13,25 @@ const MultiplayerSetup = () => {
   const [roomNameError, setRoomNameError] = useState("");
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  // Generate a random player name like "Player1234"
-  const [playerName] = useState(() => {
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return `Player${randomNum}`;
+
+  const { data: userData } = useQuery({
+    queryKey: ["me", "profile"],
+    queryFn: userAPI.getCurrentUserProfile,
+    select: (response) => {
+      if (!response?.success) return null;
+      return response.data;
+    },
   });
+  console.log("userData:", userData);
 
   // Initialize socket connection
   useEffect(() => {
     const newSocket = io("http://localhost:3000", {
-      query: { nickname: playerName },
+      query: { username: userData?.username },
     });
+    setSocket(newSocket);
     newSocket.on("connect", () => {
       setIsConnected(true);
-      // Request rooms list on connect
       newSocket.emit("get-rooms");
     });
 
@@ -32,19 +40,17 @@ const MultiplayerSetup = () => {
     //   setIsConnected(false);
     // });
 
-    // Listen for rooms list
     newSocket.on("rooms-list", (rooms) => {
-      console.log("Received rooms list:", rooms);
       setAvailableRooms(rooms);
     });
 
     // Listen for successful room join
-    newSocket.on("joined-room", (data) => {
-      console.log("Successfully joined room:", data);
-      setIsCreatingRoom(false);
-      // Navigate to game page with room info
-      navigate(`/#${data.room.id}[${data.player.nickname}]`);
-    });
+    // newSocket.on("joined-room", (data) => {
+    //   console.log("Successfully joined room:", data);
+    //   setIsCreatingRoom(false);
+    //   // Navigate to game page with room info
+    //   navigate(`/#${data.room.id}[${data.player.nickname}]`);
+    // });
 
     // Listen for room creation/join errors
     newSocket.on("join-room-error", (error) => {
@@ -60,13 +66,11 @@ const MultiplayerSetup = () => {
       setIsCreatingRoom(false);
     });
 
-    setSocket(newSocket);
-
     // Cleanup on unmount
     return () => {
       newSocket.close();
     };
-  }, [playerName, navigate]);
+  }, [navigate]);
 
   // Periodically refresh rooms list
   useEffect(() => {
@@ -91,18 +95,26 @@ const MultiplayerSetup = () => {
     }
 
     setRoomNameError("");
-    setIsCreatingRoom(true);
+    // setIsCreatingRoom(true);
 
-    // Let the server generate a room ID and use the room name as part of the nickname or room identification
-    console.log("Creating room with name:", roomName);
-    socket.emit("create-room", { nickname: playerName, roomName: roomName });
+    socket.emit("create-room", {
+      roomName: roomName,
+      userId: userData?.id,
+      userName: userData?.username,
+    });
 
     // Add a timeout to reset the creating state if something goes wrong
     setTimeout(() => {
-      if (isCreatingRoom) {
+      socket.on("create-room-error", (error) => {
+        setRoomNameError(error.message);
         setIsCreatingRoom(false);
-        setRoomNameError("Room creation timed out. Please try again.");
-      }
+        console.error("Room creation error:", error);
+      });
+      socket.on("room-created", (roomName) => {
+        console.log("Room created:", roomName);
+        setIsCreatingRoom(true);
+        navigate(`/#${roomName}[${userData?.username}]`);
+      });
     }, 10000); // 10 second timeout
   };
 
@@ -120,7 +132,6 @@ const MultiplayerSetup = () => {
     console.log("Joining room:", room.id);
     socket.emit("join-room", {
       roomId: room.id,
-      nickname: playerName,
     });
   };
 
@@ -234,7 +245,7 @@ const MultiplayerSetup = () => {
               {/* Player Info */}
               <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
                 <p className="text-gray-400 text-sm mb-1">Playing as:</p>
-                <p className="text-white font-bold">{playerName}</p>
+                <p className="text-white font-bold">{userData?.nickname}</p>
               </div>
             </div>
           </div>
@@ -265,7 +276,7 @@ const MultiplayerSetup = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h4 className="text-white font-bold text-lg">
-                          {room.id}
+                          {room.name}
                         </h4>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-bold ${
@@ -282,11 +293,9 @@ const MultiplayerSetup = () => {
 
                       <div className="flex items-center gap-4 text-sm text-gray-400">
                         {room.players && room.players.length > 0 && (
-                          <span>👤 Host: {room.players[0].nickname}</span>
+                          <span>👤 Host: {room.players[0].name}</span>
                         )}
-                        <span>
-                          👥 {room.playerCount}/{room.maxPlayers} players
-                        </span>
+                        <span>👥 {room.players.length}/2 players</span>
                       </div>
 
                       {room.players && room.players.length > 0 && (
@@ -296,7 +305,7 @@ const MultiplayerSetup = () => {
                               key={player.id}
                               className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs border border-blue-500/30"
                             >
-                              {player.nickname} {player.ready && "✓"}
+                              {player.name} {player.ready && "✓"}
                             </span>
                           ))}
                         </div>
@@ -305,7 +314,7 @@ const MultiplayerSetup = () => {
 
                     <div className="flex items-center gap-2">
                       {room.gameState === "waiting" &&
-                      room.playerCount < room.maxPlayers ? (
+                      room.players.length < 2 ? (
                         <div className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg border border-green-500/30 font-bold text-sm">
                           JOIN
                         </div>

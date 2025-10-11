@@ -12,11 +12,16 @@ import GuestRoute from "@/components/GuestRoute";
 import Success from "@/pages/auth/success";
 import ErrorPage from "@/pages/auth/error";
 import NotFoundPage from "@/pages/NotFound";
+import MultiplayerSetup from "@/pages/multiplayer";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <LandingPage />,
+  },
+  {
+    path: "/multiplayer",
+    element: <MultiplayerSetup />,
   },
   {
     path: "auth/success",

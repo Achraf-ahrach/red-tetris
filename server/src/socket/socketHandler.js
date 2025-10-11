@@ -91,8 +91,7 @@ class SocketHandler {
     });
 
     this.io.on("connection", (socket) => {
-      console.log(`User connected: ${socket.id}`);
-
+      console.log(`User connected: ${socket.handshake.query.username}`);
       // Handle room joining
       socket.on("join-room", (data) => this.handleJoinRoom(socket, data));
 
@@ -337,21 +336,33 @@ class SocketHandler {
   }
 
   handleCreateRoom(socket, data) {
-    const { roomName, socketId } = data; // fix to userid not socketid
+    const { roomName, userId, userName } = data;
     if (!roomName || typeof roomName !== "string") {
       socket.emit("create-room-error", { message: "Invalid room name" });
       return;
     }
+
     let roomId = crypto.randomBytes(10).toString("hex");
-    this.rooms.set(
-      roomId,
-      new GameRoom(roomId, roomName, [], "waiting", {
-        player1: { ready: false, score: 0, lines: 0, level: 1 },
-        player2: { ready: false, score: 0, lines: 0, level: 1 },
-      })
-    );
+    const newRoom = new GameRoom(roomId, roomName);
+
+    newRoom.players.push({
+      id: userId,
+      name: userName,
+      socketId: socket.id,
+    });
+
+    newRoom.gameData.set(userId, {
+      ready: false,
+      score: 0,
+      lines: 0,
+      level: 1,
+    });
+
+    this.rooms.set(roomId, newRoom);
+    this.playerRooms.set(userId, roomId);
+    socket.join(roomId);
     socket.emit("room-created", roomName);
-    console.log(`Room created: ${roomId} (${roomName || "No Name"})`);
+    console.log(`Room created: ${roomId} (${roomName})`);
   }
 
   handleGetRooms(socket) {
@@ -361,6 +372,7 @@ class SocketHandler {
       players: room.players.map((p) => ({
         id: p.id,
         name: p.name,
+        ready: room.gameData.get(p.id)?.ready,
       })),
       gameState: room.gameState,
     }));
