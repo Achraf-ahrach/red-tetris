@@ -16,20 +16,25 @@ const MultiplayerSetup = () => {
 
   const { data: userData } = useQuery({
     queryKey: ["me", "profile"],
-    queryFn: userAPI.getCurrentUserProfile,
-    select: (response) => {
-      if (!response?.success) return null;
-      return response.data;
+    queryFn: async () => {
+      const res = await userAPI.getCurrentUserProfile();
+      if (res?.error || res?.success === false) {
+        throw new Error(res?.data?.message || "Failed to load profile");
+      }
+      return res?.data ?? res;
     },
   });
-  console.log("userData:", userData);
 
-  // Initialize socket connection
   useEffect(() => {
+    if (!userData?.id) return;
+
     const newSocket = io("http://localhost:3000", {
-      query: { username: userData?.username },
+      query: { username: userData?.username, userId: userData?.id },
     });
+
     setSocket(newSocket);
+
+    // use the newly created socket instance (avoid using stale `socket` state)
     newSocket.on("connect", () => {
       setIsConnected(true);
       newSocket.emit("get-rooms");
@@ -44,24 +49,9 @@ const MultiplayerSetup = () => {
       setAvailableRooms(rooms);
     });
 
-    // Listen for successful room join
-    // newSocket.on("joined-room", (data) => {
-    //   console.log("Successfully joined room:", data);
-    //   setIsCreatingRoom(false);
-    //   // Navigate to game page with room info
-    //   navigate(`/#${data.room.id}[${data.player.nickname}]`);
-    // });
-
     // Listen for room creation/join errors
     newSocket.on("join-room-error", (error) => {
       console.error("Room join error:", error);
-      setRoomNameError(error.message);
-      setIsCreatingRoom(false);
-    });
-
-    // Listen for general errors
-    newSocket.on("error", (error) => {
-      console.error("Socket error:", error);
       setRoomNameError(error.message);
       setIsCreatingRoom(false);
     });
@@ -70,7 +60,7 @@ const MultiplayerSetup = () => {
     return () => {
       newSocket.close();
     };
-  }, [navigate]);
+  }, [navigate, userData]);
 
   // Periodically refresh rooms list
   useEffect(() => {
@@ -95,7 +85,6 @@ const MultiplayerSetup = () => {
     }
 
     setRoomNameError("");
-    // setIsCreatingRoom(true);
 
     socket.emit("create-room", {
       roomName: roomName,
@@ -103,19 +92,16 @@ const MultiplayerSetup = () => {
       userName: userData?.username,
     });
 
-    // Add a timeout to reset the creating state if something goes wrong
-    setTimeout(() => {
-      socket.on("create-room-error", (error) => {
-        setRoomNameError(error.message);
-        setIsCreatingRoom(false);
-        console.error("Room creation error:", error);
-      });
-      socket.on("room-created", (roomName) => {
-        console.log("Room created:", roomName);
-        setIsCreatingRoom(true);
-        navigate(`/#${roomName}[${userData?.username}]`);
-      });
-    }, 10000); // 10 second timeout
+    socket.on("create-room-error", (error) => {
+      setRoomNameError(error.message);
+      setIsCreatingRoom(false);
+      console.error("Room creation error:", error);
+    });
+    socket.on("room-created", (roomName) => {
+      console.log("Room created:", roomName);
+      setIsCreatingRoom(true);
+      navigate(`/#${roomName}[${userData?.username}]`);
+    });
   };
 
   const joinRoom = (room) => {
@@ -124,15 +110,24 @@ const MultiplayerSetup = () => {
       return;
     }
 
-    if (room.gameState === "playing" || room.playerCount >= room.maxPlayers) {
+    if (room.gameState === "playing" || room.players.length >= 2) {
       alert("This room is full or already in game!");
       return;
     }
 
-    console.log("Joining room:", room.id);
+    console.log("Joining room:", room.name);
     socket.emit("join-room", {
       roomId: room.id,
     });
+    setTimeout(() => {
+      socket.on("join-room-error", (error) => {
+        alert("Error joining room:", error.message);
+      });
+      socket.on("joined-room", (data) => {
+        console.log("Successfully joined room:", data);
+        navigate(`/#${data.roomName}[${data.userName}]`);
+      });
+    }, 10000); // 10 second timeout
   };
 
   return (

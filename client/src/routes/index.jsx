@@ -13,11 +13,12 @@ import Success from "@/pages/auth/success";
 import ErrorPage from "@/pages/auth/error";
 import NotFoundPage from "@/pages/NotFound";
 import MultiplayerSetup from "@/pages/multiplayer";
+import HashHandler from "./HashHandler";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <LandingPage />,
+    element: <HashHandler />,
   },
   {
     path: "/multiplayer",

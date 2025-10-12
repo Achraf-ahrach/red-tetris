@@ -57,6 +57,7 @@ const HashHandler = () => {
   }
 
   if (hashData) {
+    console.log("Joining room:", hashData.room, "as player:", hashData.player);
     return (
       <MultiplayerGame roomName={hashData.room} playerName={hashData.player} />
     );

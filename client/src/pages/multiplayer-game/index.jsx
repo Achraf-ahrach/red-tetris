@@ -4,6 +4,7 @@ import Board from "@/components/game/Board";
 import GameStats from "@/components/game/GameStats";
 import { BOARD_WIDTH } from "@/types";
 import { io, Socket } from "socket.io-client";
+import { useQuery } from "@tanstack/react-query";
 import {
   createEmptyBoard,
   getRandomTetromino,
@@ -19,8 +20,6 @@ import {
 
 function MultiplayerGame({ roomName, playerName }) {
   const navigate = useNavigate();
-  // console.log("Room Name:", roomName);
-  // console.log("Player Name:", playerName);
 
   // Player 1 (local player) state
   const [p1Board, setP1Board] = useState(createEmptyBoard);
@@ -49,19 +48,24 @@ function MultiplayerGame({ roomName, playerName }) {
   const [gameWinner, setGameWinner] = useState(null);
   const [socket, setSocket] = useState(null);
 
+  const { data: userData } = useQuery({
+    queryKey: ["me", "profile"],
+    queryFn: async () => {
+      const res = await userAPI.getCurrentUserProfile();
+      if (res?.error || res?.success === false) {
+        throw new Error(res?.data?.message || "Failed to load profile");
+      }
+      return res?.data ?? res;
+    },
+  });
+
   // Socket connection and room management
   useEffect(() => {
     const newSocket = io("http://localhost:3000", {
-      query: { nickname: playerName },
+      query: { username: playerName, userId: userData?.id },
     });
 
     setSocket(newSocket);
-
-    // Join the room
-    newSocket.emit("join-room", {
-      roomId: roomName,
-      nickname: playerName,
-    });
 
     // Handle successful room join
     newSocket.on("joined-room", (data) => {

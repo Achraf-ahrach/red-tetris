@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import crypto from "crypto";
+import { connect } from "http2";
 class GameRoom {
   constructor(id, name) {
     this.id = id;
@@ -9,27 +10,27 @@ class GameRoom {
     this.gameData = new Map(); // playerId -> playerGameData
   }
 
-  // addPlayer(socket, name) {
-  //   if (this.players.length === 2) {
-  //     throw new Error("Room is full");
-  //   }
+  addPlayer(socket) {
+    const userId = socket.handshake.query.userId;
+    const name = socket.handshake.query.username;
+    if (this.isFull()) return null;
 
-  //   const player = {
-  //     id: socket.id, // unique player id
-  //     socketId: socket.id,
-  //     name: name || `Player ${this.players.length + 1}`,
-  //     ready: false,
-  //   };
+    const player = {
+      id: userId,
+      socketId: socket.id,
+      name: name,
+      connected: true,
+    };
 
-  //   this.players.push(player);
-  //   this.gameData.set(player.socketId, {
-  //     ready: false,
-  //     score: 0,
-  //     lines: 0,
-  //     level: 1,
-  //   });
-  //   return player;
-  // }
+    this.players.push(player);
+    this.gameData.set(player.socketId, {
+      ready: false,
+      score: 0,
+      lines: 0,
+      level: 1,
+    });
+    return player;
+  }
 
   // removePlayer(socketId) {}
 
@@ -126,72 +127,62 @@ class SocketHandler {
     console.log("Socket.IO server initialized");
   }
 
-  // handleJoinRoom(socket, data) {
-  //   const { roomId, nickname } = data;
+  handleJoinRoom(socket, data) {
+    const userId = socket.handshake.query.userId;
+    const { roomId } = data;
 
-  //   if (!roomId) {
-  //     socket.emit("error", { message: "Room ID is required" });
-  //     return;
-  //   }
+    if (!roomId) {
+      socket.emit("error", { message: "Room ID is required" });
+      return;
+    }
 
-  //   // Leave current room if in one
-  //   this.handleLeaveRoom(socket);
+    // Leave current room if in one
+    // this.handleLeaveRoom(socket);
 
-  //   // Find or create room
-  //   let room = this.rooms.get(roomId);
-  //   if (!room) {
-  //     room = new GameRoom(roomId);
-  //     this.rooms.set(roomId, room);
-  //   }
+    // Find or create room
+    let room = this.rooms.get(roomId);
+    if (!room) {
+      socket.emit("join-room-error", { message: "Room not found" });
+      return;
+    }
 
-  //   // Check if room is full
-  //   if (room.isFull()) {
-  //     socket.emit("join-room-error", { message: "Room is full" });
-  //     return;
-  //   }
+    // Check if room is full
+    if (room.isFull()) {
+      socket.emit("join-room-error", { message: "Room is full" });
+      return;
+    }
 
-  //   // Set nickname if provided
-  //   if (nickname) {
-  //     socket.handshake.query.nickname = nickname;
-  //   }
+    // Add player to room
+    const player = room.addPlayer(socket);
+    if (!player) {
+      socket.emit("join-room-error", { message: "Could not join room" });
+      return;
+    }
 
-  //   // Add player to room
-  //   const player = room.addPlayer(socket);
-  //   if (!player) {
-  //     socket.emit("join-room-error", { message: "Could not join room" });
-  //     return;
-  //   }
+    // Join socket room
+    socket.join(roomId);
+    this.playerRooms.set(userId, roomId);
 
-  //   // Join socket room
-  //   socket.join(roomId);
-  //   this.playerRooms.set(socket.id, roomId);
+    // Notify player of successful join
+    socket.emit("joined-room", {
+      roomName: room.name,
+      userName: player.name,
+    });
 
-  //   // Notify player of successful join
-  //   socket.emit("joined-room", {
-  //     room: room.getRoomInfo(),
-  //     player: {
-  //       id: player.id,
-  //       nickname: player.nickname,
-  //       playerNumber: player.playerNumber,
-  //       ready: player.ready,
-  //     },
-  //   });
+    // Notify other players in room
+    socket.to(roomId).emit("player-joined", {
+      player: {
+        id: player.id,
+        name: player.name,
+        connected: player.connected,
+      },
+      room: room.getRoomInfo(),
+    });
 
-  //   // Notify other players in room
-  //   socket.to(roomId).emit("player-joined", {
-  //     player: {
-  //       id: player.id,
-  //       nickname: player.nickname,
-  //       playerNumber: player.playerNumber,
-  //       ready: player.ready,
-  //     },
-  //     room: room.getRoomInfo(),
-  //   });
-
-  //   console.log(
-  //     `Player id: ${socket.id}, name: ${player.nickname} , joined room: ${roomId}`
-  //   );
-  // }
+    console.log(
+      `Player id: ${userId}, name: ${player.name} , joined room: ${room.name}`
+    );
+  }
 
   handleLeaveRoom(userId) {
     const roomId = this.playerRooms.get(userId);
@@ -349,6 +340,7 @@ class SocketHandler {
       id: userId,
       name: userName,
       socketId: socket.id,
+      connected: true,
     });
 
     newRoom.gameData.set(userId, {
@@ -380,9 +372,10 @@ class SocketHandler {
     socket.emit("rooms-list", roomList);
   }
 
-  handleDisconnect(userId) {
+  handleDisconnect(socket) {
+    const userId = socket.handshake.query.userId;
     console.log(`User disconnected: ${userId}`);
-    this.handleLeaveRoom(userId);
+    // i want set coonnected = false for this player in the room
   }
 
   // Public methods for external use
