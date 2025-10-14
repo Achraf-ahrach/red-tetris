@@ -127,6 +127,10 @@ class SocketHandler {
     console.log("Socket.IO server initialized");
   }
 
+  isUserInAnyRoom(userId) {
+    return this.playerRooms.has(userId);
+  }
+
   handleJoinRoom(socket, data) {
     const userId = socket.handshake.query.userId;
     const { roomId } = data;
@@ -134,6 +138,13 @@ class SocketHandler {
     if (!roomId) {
       socket.emit("error", { message: "Room ID is required" });
       return;
+    }
+    if (this.isUserInAnyRoom(userId)) {
+      // change old socket to new socket
+      let roomUser = this.rooms.get(this.playerRooms.get(userId));
+      if (roomUser) {
+        roomUser.socketId = socket.id;
+      }
     }
 
     // Leave current room if in one
@@ -159,7 +170,6 @@ class SocketHandler {
       return;
     }
 
-    // Join socket room
     socket.join(roomId);
     this.playerRooms.set(userId, roomId);
 
@@ -353,6 +363,7 @@ class SocketHandler {
     this.rooms.set(roomId, newRoom);
     this.playerRooms.set(userId, roomId);
     socket.join(roomId);
+    console.log("");
     socket.emit("room-created", roomName);
     console.log(`Room created: ${roomId} (${roomName})`);
   }

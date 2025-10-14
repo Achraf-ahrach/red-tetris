@@ -50,11 +50,11 @@ const MultiplayerSetup = () => {
     });
 
     // Listen for room creation/join errors
-    newSocket.on("join-room-error", (error) => {
-      console.error("Room join error:", error);
-      setRoomNameError(error.message);
-      setIsCreatingRoom(false);
-    });
+    // newSocket.on("join-room-error", (error) => {
+    //   console.error("Room join error:", error);
+    //   setRoomNameError(error.message);
+    //   setIsCreatingRoom(false);
+    // });
 
     // Cleanup on unmount
     return () => {
@@ -115,19 +115,16 @@ const MultiplayerSetup = () => {
       return;
     }
 
-    console.log("Joining room:", room.name);
     socket.emit("join-room", {
       roomId: room.id,
     });
-    setTimeout(() => {
-      socket.on("join-room-error", (error) => {
-        alert("Error joining room:", error.message);
-      });
-      socket.on("joined-room", (data) => {
-        console.log("Successfully joined room:", data);
-        navigate(`/#${data.roomName}[${data.userName}]`);
-      });
-    }, 10000); // 10 second timeout
+    socket.on("join-room-error", (error) => {
+      alert("Error joining room:", error.message);
+    });
+    socket.on("joined-room", (data) => {
+      console.log("Successfully joined room:", data);
+      navigate(`/#${data.roomName}[${data.userName}]`);
+    });
   };
 
   return (
