@@ -8,12 +8,12 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/ui/toast";
 import { KeyboardShortcutsProvider } from "./components/KeyboardShortcuts";
+import { SocketProvider } from "./contexts/SocketContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-      
         if (error?.status === 401 || error?.status === 403) return false;
         return failureCount < 2;
       },
@@ -28,8 +28,10 @@ createRoot(document.getElementById("root")).render(
       <KeyboardShortcutsProvider>
         <ToastProvider>
           <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router} />
-            <ReactQueryDevtools initialIsOpen={false} />
+            <SocketProvider>
+              <RouterProvider router={router} />
+              <ReactQueryDevtools initialIsOpen={false} />
+            </SocketProvider>
           </QueryClientProvider>
         </ToastProvider>
       </KeyboardShortcutsProvider>

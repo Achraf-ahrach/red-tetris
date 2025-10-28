@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
-import { useQuery } from "@tanstack/react-query";
-import { userAPI } from "../../services/api";
-import { tr } from "zod/v4/locales";
+import { useSocket } from "../../contexts/SocketContext";
 
 const MultiplayerSetup = () => {
   const navigate = useNavigate();
@@ -11,56 +8,23 @@ const MultiplayerSetup = () => {
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [roomNameError, setRoomNameError] = useState("");
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-
-  const { data: userData } = useQuery({
-    queryKey: ["me", "profile"],
-    queryFn: async () => {
-      const res = await userAPI.getCurrentUserProfile();
-      if (res?.error || res?.success === false) {
-        throw new Error(res?.data?.message || "Failed to load profile");
-      }
-      return res?.data ?? res;
-    },
-  });
+  const { socket, isConnected, userData } = useSocket();
 
   useEffect(() => {
-    if (!userData?.id) return;
+    if (!socket || !isConnected) return;
 
-    const newSocket = io("http://localhost:3000", {
-      query: { username: userData?.username, userId: userData?.id },
-    });
+    socket.emit("get-rooms");
 
-    setSocket(newSocket);
-
-    // use the newly created socket instance (avoid using stale `socket` state)
-    newSocket.on("connect", () => {
-      setIsConnected(true);
-      newSocket.emit("get-rooms");
-    });
-
-    // newSocket.on("disconnect", () => {
-    //   console.log("Disconnected from server");
-    //   setIsConnected(false);
-    // });
-
-    newSocket.on("rooms-list", (rooms) => {
+    const handleRoomsList = (rooms) => {
       setAvailableRooms(rooms);
-    });
-
-    // Listen for room creation/join errors
-    // newSocket.on("join-room-error", (error) => {
-    //   console.error("Room join error:", error);
-    //   setRoomNameError(error.message);
-    //   setIsCreatingRoom(false);
-    // });
-
-    // Cleanup on unmount
-    return () => {
-      newSocket.close();
     };
-  }, [navigate, userData]);
+
+    socket.on("rooms-list", handleRoomsList);
+
+    return () => {
+      socket.off("rooms-list", handleRoomsList);
+    };
+  }, [socket, isConnected]);
 
   // Periodically refresh rooms list
   useEffect(() => {

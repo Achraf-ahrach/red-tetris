@@ -10,20 +10,19 @@ class GameRoom {
     this.gameData = new Map(); // playerId -> playerGameData
   }
 
-  addPlayer(socket) {
-    const userId = socket.handshake.query.userId;
+  newPlayer(socket) {
+    const userId = Number(socket.handshake.query.userId);
     const name = socket.handshake.query.username;
-    if (this.isFull()) return null;
 
     const player = {
       id: userId,
-      socketId: socket.id,
+      socket: socket,
       name: name,
       connected: true,
     };
 
     this.players.push(player);
-    this.gameData.set(player.socketId, {
+    this.gameData.set(userId, {
       ready: false,
       score: 0,
       lines: 0,
@@ -69,8 +68,8 @@ class GameRoom {
       players: this.players.map((p) => ({
         id: p.id,
         name: p.name,
-        socketId: p.socketId,
-        ready: this.gameData.get(p.socketId)?.ready,
+        socketId: p.socket.id,
+        ready: this.gameData.get(p.id)?.ready,
       })),
     };
   }
@@ -93,7 +92,25 @@ class SocketHandler {
 
     this.io.on("connection", (socket) => {
       console.log(`User connected: ${socket.handshake.query.username}`);
-      // Handle room joining
+      const userId = Number(socket.handshake.query.userId);
+
+      const existingRoomId = this.playerRooms.get(userId);
+      if (existingRoomId) {
+        const room = this.rooms.get(existingRoomId);
+        if (room) {
+          let existingPlayer = room.getPlayer(userId);
+          if (existingPlayer) {
+            existingPlayer.connected = true;
+            existingPlayer.socket = socket;
+
+            socket.join(existingRoomId);
+            socket.to(existingRoomId).emit("player-reconnected", {
+              userId: userId,
+              room: room.getRoomInfo(),
+            });
+          }
+        }
+      }
       socket.on("join-room", (data) => this.handleJoinRoom(socket, data));
 
       // Handle leaving room
@@ -132,20 +149,20 @@ class SocketHandler {
   }
 
   handleJoinRoom(socket, data) {
-    const userId = socket.handshake.query.userId;
+    const userId = Number(socket.handshake.query.userId);
     const { roomId } = data;
 
     if (!roomId) {
       socket.emit("error", { message: "Room ID is required" });
       return;
     }
-    if (this.isUserInAnyRoom(userId)) {
-      // change old socket to new socket
-      let roomUser = this.rooms.get(this.playerRooms.get(userId));
-      if (roomUser) {
-        roomUser.socketId = socket.id;
-      }
-    }
+    // if (this.isUserInAnyRoom(userId)) {
+    //   // change old socket to new socket
+    //   let roomUser = this.rooms.get(this.playerRooms.get(userId));
+    //   if (roomUser) {
+    //     roomUser.socketId = socket.id;
+    //   }
+    // }
 
     // Leave current room if in one
     // this.handleLeaveRoom(socket);
@@ -162,30 +179,14 @@ class SocketHandler {
       socket.emit("join-room-error", { message: "Room is full" });
       return;
     }
-
-    // Add player to room
-    const player = room.addPlayer(socket);
-    if (!player) {
-      socket.emit("join-room-error", { message: "Could not join room" });
-      return;
-    }
-
     socket.join(roomId);
+
+    const player = room.newPlayer(socket);
+
     this.playerRooms.set(userId, roomId);
 
-    // Notify player of successful join
-    socket.emit("joined-room", {
+    this.io.to(roomId).emit("player-joined", {
       roomName: room.name,
-      userName: player.name,
-    });
-
-    // Notify other players in room
-    socket.to(roomId).emit("player-joined", {
-      player: {
-        id: player.id,
-        name: player.name,
-        connected: player.connected,
-      },
       room: room.getRoomInfo(),
     });
 
@@ -337,7 +338,8 @@ class SocketHandler {
   }
 
   handleCreateRoom(socket, data) {
-    const { roomName, userId, userName } = data;
+    const userId = Number(socket.handshake.query.userId);
+    const { roomName, userName } = data;
     if (!roomName || typeof roomName !== "string") {
       socket.emit("create-room-error", { message: "Invalid room name" });
       return;
@@ -349,7 +351,7 @@ class SocketHandler {
     newRoom.players.push({
       id: userId,
       name: userName,
-      socketId: socket.id,
+      socket: socket,
       connected: true,
     });
 
@@ -363,9 +365,8 @@ class SocketHandler {
     this.rooms.set(roomId, newRoom);
     this.playerRooms.set(userId, roomId);
     socket.join(roomId);
-    console.log("");
     socket.emit("room-created", roomName);
-    console.log(`Room created: ${roomId} (${roomName})`);
+    // console.log(`Room created: ${this.rooms.get(roomId)?.getRoomInfo()}`);
   }
 
   handleGetRooms(socket) {
@@ -384,8 +385,9 @@ class SocketHandler {
   }
 
   handleDisconnect(socket) {
-    const userId = socket.handshake.query.userId;
-    console.log(`User disconnected: ${userId}`);
+    // const userId = socket.handshake.query.userId;
+    const username = socket.handshake.query.username;
+    console.log(`User disconnected: ${username}`);
     // i want set coonnected = false for this player in the room
   }
 

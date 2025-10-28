@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Board from "@/components/game/Board";
 import GameStats from "@/components/game/GameStats";
 import { BOARD_WIDTH } from "@/types";
-import { io, Socket } from "socket.io-client";
-import { useQuery } from "@tanstack/react-query";
+import { useSocket } from "../../contexts/SocketContext";
+
 import {
   createEmptyBoard,
   getRandomTetromino,
@@ -46,100 +46,81 @@ function MultiplayerGame({ roomName, playerName }) {
   const [isPaused, setIsPaused] = useState(false);
   const [opponent, setOpponent] = useState(null);
   const [gameWinner, setGameWinner] = useState(null);
-  const [socket, setSocket] = useState(null);
+  const { socket, isConnected, userData } = useSocket();
 
-  const { data: userData } = useQuery({
-    queryKey: ["me", "profile"],
-    queryFn: async () => {
-      const res = await userAPI.getCurrentUserProfile();
-      if (res?.error || res?.success === false) {
-        throw new Error(res?.data?.message || "Failed to load profile");
-      }
-      return res?.data ?? res;
-    },
-  });
-
-  // Socket connection and room management
   useEffect(() => {
-    const newSocket = io("http://localhost:3000", {
-      query: { username: playerName, userId: userData?.id },
-    });
-
-    setSocket(newSocket);
+    if (!socket || !isConnected) return;
 
     // Handle successful room join
-    newSocket.on("joined-room", (data) => {
-      console.log("Joined room:", data);
-      // If there are 2 players, set opponent
-      if (data.room.playerCount === 2) {
+    const handlePlayerJoined = (data) => {
+      console.log("Current room state:", data.room);
+      if (data.room.players.length === 2) {
+        console.log("Opponent joined:", data);
         const opponentPlayer = data.room.players.find(
-          (player) => player.id !== newSocket.id
+          (player) => player.socketId !== socket.id
         );
+        console.log("Opponent Player:", opponentPlayer);
         setOpponent(opponentPlayer);
       }
-    });
-
-    // Handle when another player joins
-    newSocket.on("player-joined", (data) => {
-      console.log("Player joined:", data);
-      setOpponent(data.player);
-    });
+    };
 
     // Handle player ready state changes
-    newSocket.on("player-ready-changed", (data) => {
+    const handlePlayerReadyChanged = (data) => {
       console.log("Player ready changed:", data);
-      if (data.playerId !== newSocket.id) {
+      if (data.playerId !== socket.id) {
         // Update opponent ready state
         setOpponent((prev) => (prev ? { ...prev, ready: data.ready } : null));
       }
-    });
+    };
 
     // Handle when player leaves
-    newSocket.on("player-left", (data) => {
+    const handlePlayerLeft = (data) => {
       console.log("Player left:", data);
       setOpponent(null);
       setGameStarted(false);
       setGameWinner(null);
-    });
+    };
 
     // Handle game start
-    newSocket.on("game-start", (data) => {
+    const handleGameStart = (data) => {
       console.log("Game starting:", data);
       setGameStarted(true);
       initializeGame();
-    });
-
-    // Handle opponent game updates
-    // newSocket.on("game-update", (data) => {
-    //   if (data.playerId !== newSocket.id) {
-    //     // Update opponent's game state
-    //     if (data.gameData.score !== undefined) setP2Score(data.gameData.score);
-    //     if (data.gameData.lines !== undefined) setP2Lines(data.gameData.lines);
-    //     if (data.gameData.level !== undefined) setP2Level(data.gameData.level);
-    //   }
-    // });
+    };
 
     // Handle game over
-    newSocket.on("game-over", (data) => {
+    const handleGameOver = (data) => {
       console.log("Game over:", data);
-      if (data.playerId !== newSocket.id) {
+      if (data.playerId !== socket.id) {
         setP2GameOver(true);
         setGameWinner(playerName);
       }
-    });
+    };
 
     // Handle join room errors
-    newSocket.on("join-room-error", (data) => {
+    const handleJoinRoomError = (data) => {
       console.error("Join room error:", data);
       navigate("/multiplayer");
-    });
+    };
+
+    socket.on("player-joined", handlePlayerJoined);
+    socket.on("player-ready-changed", handlePlayerReadyChanged);
+    socket.on("player-left", handlePlayerLeft);
+    socket.on("game-start", handleGameStart);
+    socket.on("game-over", handleGameOver);
+    socket.on("join-room-error", handleJoinRoomError);
 
     // Cleanup on unmount
     return () => {
-      newSocket.emit("leave-room");
-      newSocket.disconnect();
+      socket.off("player-joined", handlePlayerJoined);
+      socket.off("player-ready-changed", handlePlayerReadyChanged);
+      socket.off("player-left", handlePlayerLeft);
+      socket.off("game-start", handleGameStart);
+      socket.off("game-over", handleGameOver);
+      socket.off("join-room-error", handleJoinRoomError);
+      socket.emit("leave-room");
     };
-  }, [roomName, playerName, navigate]);
+  }, [socket, isConnected, roomName, playerName, navigate]);
 
   // Initialize game for both players
   const initializeGame = useCallback(() => {
