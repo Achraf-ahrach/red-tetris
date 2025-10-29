@@ -11,10 +11,10 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, // Listen on all addresses
+    host: true,
     port: 5173,
     watch: {
-      usePolling: true, // Enable polling for file changes in Docker
+      usePolling: true, 
     },
     hmr: {
       port: 5173,

@@ -32,11 +32,18 @@ const Board = ({ currentBoard, currentPiece, currentPosition, isGameOver }) => {
 
   const displayBoard = getDisplayBoard();
 
+  // Compute dynamic sizing: width based on columns, height capped by viewport
+  // The wrapper sets max-h and uses CSS grid to make each cell square via aspect-square in Cell
   return (
     <div className="relative">
       <div
-        className="grid gap-1 p-6 bg-black/40 backdrop-blur-sm border border-white/20 rounded-xl shadow-2xl"
-        style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, 1fr)` }}
+        className="grid gap-[2px] sm:gap-[3px] md:gap-1 p-2 sm:p-3 md:p-4 bg-black/40 backdrop-blur-sm border border-white/20 rounded-xl shadow-2xl"
+        style={{
+          gridTemplateColumns: `repeat(${BOARD_WIDTH}, 1fr)`,
+          // Limit overall height and width to keep it on screen
+          maxHeight: "min(78vh, 88vw)",
+          width: "min(88vw, 48rem)",
+        }}
       >
         {displayBoard.map((row, rowIndex) =>
           row.map((cell, colIndex) => (

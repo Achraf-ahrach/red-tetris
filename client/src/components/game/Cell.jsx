@@ -1,29 +1,39 @@
-import React from "react";
+import React, { memo } from "react";
 
-function Cell({ type, isEmpty }) {
-  const getCellColor = (cellType) => {
-    if (isEmpty) return "bg-gray-900";
-
-    const colors = {
-      I: "bg-cyan-400", // Cyan for I piece
-      J: "bg-blue-500", // Blue for J piece
-      L: "bg-orange-500", // Orange for L piece
-      O: "bg-yellow-400", // Yellow for O piece
-      S: "bg-green-500", // Green for S piece
-      T: "bg-purple-500", // Purple for T piece
-      Z: "bg-red-500", // Red for Z piece
-      Empty: "bg-gray-900",
-    };
-    return colors[cellType] || "bg-gray-500";
-  };
+const Cell = memo(function Cell({ color }) {
+  if (!color) return <div className="w-full h-full bg-black/20" />;
 
   return (
-    <div
-      className={`w-8 h-8 border border-gray-600 ${getCellColor(
-        type
-      )} transition-colors duration-150`}
-    />
+    <div className="w-full h-full relative">
+      {/* Base depth shadow */}
+      <div className="absolute inset-0 bg-black/70 rounded-[3px]" />
+      {/* Main glossy block */}
+      <div
+        className="absolute inset-[6%] rounded-[6px] border-2"
+        style={{
+          borderColor: `${color}99`,
+          background: `linear-gradient(135deg, ${color}ff 0%, ${color}e6 40%, ${color}cc 70%, ${color}b3 100%)`,
+          boxShadow: `0 2px 8px ${color}66, 0 0 16px ${color}44, inset 0 -4px 12px rgba(0,0,0,0.5), inset 2px 2px 8px rgba(255,255,255,0.3)`,
+        }}
+      />
+      {/* Top highlight */}
+      <div
+        className="absolute inset-[6%] rounded-[6px] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 25%, transparent 50%)",
+          mixBlendMode: "overlay",
+        }}
+      />
+      {/* Edge highlight */}
+      <div
+        className="absolute inset-[6%] rounded-[6px] pointer-events-none"
+        style={{
+          boxShadow: `inset 1px 1px 2px rgba(255,255,255,0.4), inset -1px -1px 2px rgba(0,0,0,0.4)`,
+        }}
+      />
+    </div>
   );
-}
+});
 
 export default Cell;
