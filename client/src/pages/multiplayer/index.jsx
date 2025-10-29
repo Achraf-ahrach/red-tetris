@@ -4,27 +4,66 @@ import { useSocket } from "../../contexts/SocketContext";
 
 const MultiplayerSetup = () => {
   const navigate = useNavigate();
+  const { socket, isConnected, userData } = useSocket();
   const [roomName, setRoomName] = useState("");
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [roomNameError, setRoomNameError] = useState("");
-  const { socket, isConnected, userData } = useSocket();
 
+  // Set up socket listeners
   useEffect(() => {
     if (!socket || !isConnected) return;
 
+    // Request rooms list when connected
     socket.emit("get-rooms");
 
+    // Listen for rooms list updates
     const handleRoomsList = (rooms) => {
       setAvailableRooms(rooms);
     };
 
-    socket.on("rooms-list", handleRoomsList);
+    // Handle room creation success
+    const handleRoomCreated = (roomName) => {
+      console.log("Room created:", roomName);
+      setIsCreatingRoom(false);
+      navigate(`/#${roomName}[${userData?.username}]`);
+    };
 
+    // Handle room creation error
+    const handleCreateRoomError = (error) => {
+      setRoomNameError(error.message);
+      setIsCreatingRoom(false);
+      console.error("Room creation error:", error);
+    };
+
+    // Handle successful room join
+    const handlePlayerJoined = (data) => {
+      console.log("Successfully joined room:", data);
+      // Navigate to game after successful join
+      navigate(`/#${data.roomName}[${userData?.username}]`);
+    };
+
+    // Handle room join error
+    const handleJoinRoomError = (error) => {
+      console.error("Room join error:", error);
+      alert(`Error joining room: ${error.message}`);
+    };
+
+    socket.on("rooms-list", handleRoomsList);
+    socket.on("room-created", handleRoomCreated);
+    socket.on("create-room-error", handleCreateRoomError);
+    socket.on("player-joined", handlePlayerJoined);
+    socket.on("join-room-error", handleJoinRoomError);
+
+    // Cleanup listeners on unmount
     return () => {
       socket.off("rooms-list", handleRoomsList);
+      socket.off("room-created", handleRoomCreated);
+      socket.off("create-room-error", handleCreateRoomError);
+      socket.off("player-joined", handlePlayerJoined);
+      socket.off("join-room-error", handleJoinRoomError);
     };
-  }, [socket, isConnected]);
+  }, [socket, isConnected, navigate, userData?.username]);
 
   // Periodically refresh rooms list
   useEffect(() => {
@@ -49,22 +88,12 @@ const MultiplayerSetup = () => {
     }
 
     setRoomNameError("");
+    setIsCreatingRoom(true);
 
     socket.emit("create-room", {
       roomName: roomName,
       userId: userData?.id,
       userName: userData?.username,
-    });
-
-    socket.on("create-room-error", (error) => {
-      setRoomNameError(error.message);
-      setIsCreatingRoom(false);
-      console.error("Room creation error:", error);
-    });
-    socket.on("room-created", (roomName) => {
-      console.log("Room created:", roomName);
-      setIsCreatingRoom(true);
-      navigate(`/#${roomName}[${userData?.username}]`);
     });
   };
 
@@ -79,15 +108,10 @@ const MultiplayerSetup = () => {
       return;
     }
 
+    console.log("Joining room:", room.name, "with ID:", room.id);
+
     socket.emit("join-room", {
       roomId: room.id,
-    });
-    socket.on("join-room-error", (error) => {
-      alert("Error joining room:", error.message);
-    });
-    socket.on("joined-room", (data) => {
-      console.log("Successfully joined room:", data);
-      navigate(`/#${data.roomName}[${data.userName}]`);
     });
   };
 
