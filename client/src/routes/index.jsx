@@ -1,7 +1,7 @@
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { Login } from "@/pages/auth/login";
 import { Register } from "@/pages/auth/register";
-import GamePage from "@/pages/game";
+import GamePlay from "@/pages/game/GamePlay";
 import { createBrowserRouter, Link } from "react-router-dom";
 import LandingPage from "@/pages/landing";
 import Profile from "@/pages/profile";
@@ -12,6 +12,7 @@ import GuestRoute from "@/components/GuestRoute";
 import Success from "@/pages/auth/success";
 import ErrorPage from "@/pages/auth/error";
 import NotFoundPage from "@/pages/NotFound";
+import GameModeSelection from "@/pages/game/GameModeSelection";
 
 const router = createBrowserRouter([
   {
@@ -75,7 +76,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/game",
-        element: <GamePage />,
+        element: <GameModeSelection />,
+      },
+      {
+        path: "/game/play",
+        element: <GamePlay />,
       },
       {
         path: "/profile",
