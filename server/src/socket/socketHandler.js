@@ -56,7 +56,7 @@ class GameRoom {
   allPlayersReady() {
     if (this.players.length < 2) return false;
     return this.players.every((p) => {
-      const GameData = this.gameData.get(p.Socket_id);
+      const GameData = this.gameData.get(p.id);
       return GameData && GameData.ready;
     });
   }
@@ -116,6 +116,11 @@ class SocketHandler {
       // Handle leaving room
       socket.on("leave-room", () => this.handleLeaveRoom(socket));
 
+      // Handle get room state
+      socket.on("get-room-state", (data) =>
+        this.handleGetRoomState(socket, data)
+      );
+
       // Handle player ready
       socket.on("player-ready", () => this.handlePlayerReady(socket));
 
@@ -156,16 +161,6 @@ class SocketHandler {
       socket.emit("error", { message: "Room ID is required" });
       return;
     }
-    // if (this.isUserInAnyRoom(userId)) {
-    //   // change old socket to new socket
-    //   let roomUser = this.rooms.get(this.playerRooms.get(userId));
-    //   if (roomUser) {
-    //     roomUser.socketId = socket.id;
-    //   }
-    // }
-
-    // Leave current room if in one
-    // this.handleLeaveRoom(socket);
 
     // Find or create room
     let room = this.rooms.get(roomId);
@@ -174,11 +169,31 @@ class SocketHandler {
       return;
     }
 
+    // Check if player is already in this room
+    const existingPlayer = room.getPlayer(userId);
+    if (existingPlayer) {
+      console.log(
+        `Player ${userId} already in room ${roomId}, updating socket`
+      );
+      // Update the socket reference for the existing player
+      existingPlayer.socket = socket;
+      existingPlayer.connected = true;
+      socket.join(roomId);
+
+      // Notify the player they've rejoined
+      socket.emit("player-joined", {
+        roomName: room.name,
+        room: room.getRoomInfo(),
+      });
+      return;
+    }
+
     // Check if room is full
     if (room.isFull()) {
       socket.emit("join-room-error", { message: "Room is full" });
       return;
     }
+
     socket.join(roomId);
 
     const player = room.newPlayer(socket);
@@ -225,98 +240,124 @@ class SocketHandler {
     }
   }
 
-  // handlePlayerReady(socket) {
-  //   const roomId = this.playerRooms.get(socket.id);
-  //   if (!roomId) return;
+  handleGetRoomState(socket) {
+    const userId = Number(socket.handshake.query.userId);
+    const roomId = this.playerRooms.get(userId);
 
-  //   const room = this.rooms.get(roomId);
-  //   if (!room) return;
+    if (!roomId) {
+      socket.emit("room-state-error", { message: "Not in any room" });
+      return;
+    }
 
-  //   const player = room.getPlayer(socket.id);
-  //   if (!player) return;
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      socket.emit("room-state-error", { message: "Room not found" });
+      return;
+    }
 
-  //   player.ready = !player.ready;
+    socket.emit("room-state", {
+      roomName: room.name,
+      room: room.getRoomInfo(),
+    });
+  }
 
-  //   // Update game data
-  //   if (player.playerNumber === 1) {
-  //     room.gameData.player1.ready = player.ready;
-  //   } else {
-  //     room.gameData.player2.ready = player.ready;
-  //   }
+  handlePlayerReady(socket) {
+    const userId = Number(socket.handshake.query.userId);
+    const roomId = this.playerRooms.get(userId);
+    if (!roomId) return;
 
-  //   // Notify all players in room
-  //   this.io.to(roomId).emit("player-ready-changed", {
-  //     playerId: socket.id,
-  //     ready: player.ready,
-  //     room: room.getRoomInfo(),
-  //   });
+    const room = this.rooms.get(roomId);
+    if (!room) return;
 
-  //   // Start game if all players are ready
-  //   if (room.allPlayersReady()) {
-  //     room.gameState = "playing";
-  //     this.io.to(roomId).emit("game-start", {
-  //       room: room.getRoomInfo(),
-  //     });
-  //     console.log(`Game started in room ${roomId}`);
-  //   }
-  // }
+    const player = room.getPlayer(userId);
+    if (!player) return;
 
-  // handleGameAction(socket, data) {
-  //   const roomId = this.playerRooms.get(socket.id);
-  //   if (!roomId) return;
+    // Toggle ready state in gameData
+    const gameData = room.gameData.get(userId);
+    if (gameData) {
+      gameData.ready = !gameData.ready;
+      room.gameData.set(userId, gameData);
+    }
 
-  //   const room = this.rooms.get(roomId);
-  //   if (!room || room.gameState !== "playing") return;
+    // Notify all players in room
+    this.io.to(roomId).emit("player-ready-changed", {
+      playerId: socket.id,
+      ready: gameData.ready,
+      room: room.getRoomInfo(),
+    });
 
-  //   // Broadcast game action to other players in room
-  //   socket.to(roomId).emit("opponent-action", {
-  //     playerId: socket.id,
-  //     action: data,
-  //   });
-  // }
+    console.log(
+      `Player ${userId} ready state: ${gameData.ready} in room ${roomId}`
+    );
 
-  // handleGameUpdate(socket, data) {
-  //   const roomId = this.playerRooms.get(socket.id);
-  //   if (!roomId) return;
+    // Start game if all players are ready
+    if (room.allPlayersReady()) {
+      room.gameState = "playing";
+      this.io.to(roomId).emit("game-start", {
+        room: room.getRoomInfo(),
+      });
+      console.log(`Game started in room ${roomId}`);
+    }
+  }
 
-  //   const room = this.rooms.get(roomId);
-  //   if (!room || room.gameState !== "playing") return;
+  handleGameUpdate(socket, data) {
+    const userId = Number(socket.handshake.query.userId);
+    const roomId = this.playerRooms.get(userId);
+    if (!roomId) return;
 
-  //   const player = room.getPlayer(socket.id);
-  //   if (!player) return;
+    const room = this.rooms.get(roomId);
+    if (!room || room.gameState !== "playing") return;
 
-  //   // Update player game data
-  //   const playerData =
-  //     player.playerNumber === 1 ? room.gameData.player1 : room.gameData.player2;
-  //   if (data.score !== undefined) playerData.score = data.score;
-  //   if (data.lines !== undefined) playerData.lines = data.lines;
-  //   if (data.level !== undefined) playerData.level = data.level;
+    const player = room.getPlayer(userId);
+    if (!player) return;
 
-  //   // Broadcast update to all players in room
-  //   this.io.to(roomId).emit("game-update", {
-  //     playerId: socket.id,
-  //     playerNumber: player.playerNumber,
-  //     gameData: data,
-  //   });
-  // }
+    // Update player game data
+    const playerData = room.gameData.get(userId);
+    if (data.score !== undefined) playerData.score = data.score;
+    if (data.lines !== undefined) playerData.lines = data.lines;
+    if (data.level !== undefined) playerData.level = data.level;
 
-  // handleLineClear(socket, data) {
-  //   const roomId = this.playerRooms.get(socket.id);
-  //   if (!roomId) return;
+    // Broadcast update to all players in room
+    this.io.to(roomId).emit("game-update", {
+      playerId: socket.id,
+      userId: userId,
+      gameData: data,
+    });
+  }
 
-  //   const room = this.rooms.get(roomId);
-  //   if (!room || room.gameState !== "playing") return;
+  handleLineClear(socket, data) {
+    const userId = Number(socket.handshake.query.userId);
+    const roomId = this.playerRooms.get(userId);
+    if (!roomId) return;
 
-  //   // Send attack to opponent
-  //   socket.to(roomId).emit("receive-attack", {
-  //     lines: data.lines,
-  //     from: socket.id,
-  //   });
+    const room = this.rooms.get(roomId);
+    if (!room || room.gameState !== "playing") return;
 
-  //   console.log(
-  //     `Player ${socket.id} sent attack of ${data.lines} lines in room ${roomId}`
-  //   );
-  // }
+    // Send attack to opponent
+    socket.to(roomId).emit("receive-attack", {
+      lines: data.lines,
+      from: socket.id,
+    });
+
+    console.log(
+      `Player ${userId} sent attack of ${data.lines} lines in room ${roomId}`
+    );
+  }
+
+  handleGameAction(socket, data) {
+    const userId = Number(socket.handshake.query.userId);
+    const roomId = this.playerRooms.get(userId);
+    if (!roomId) return;
+
+    const room = this.rooms.get(roomId);
+    if (!room || room.gameState !== "playing") return;
+
+    // Broadcast game action to other players in room
+    socket.to(roomId).emit("opponent-action", {
+      playerId: socket.id,
+      action: data,
+    });
+  }
 
   handleGameOver(socket, userId) {
     const roomId = this.playerRooms.get(userId);

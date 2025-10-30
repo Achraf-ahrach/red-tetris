@@ -49,18 +49,35 @@ function MultiplayerGame({ roomName, playerName }) {
   const { socket, isConnected, userData } = useSocket();
 
   useEffect(() => {
-    if (!socket || !isConnected) return;
+    if (!socket || !isConnected || !roomName) return;
 
-    // Handle successful room join
+    socket.emit("get-room-state", { roomName });
+
     const handlePlayerJoined = (data) => {
-      console.log("Current room state:", data.room);
-      if (data.room.players.length === 2) {
-        console.log("Opponent joined:", data);
+      console.log("Player joined - Current room state:", data.room);
+      updateOpponentFromRoomData(data);
+    };
+
+    // Handle room state response
+    const handleRoomState = (data) => {
+      console.log("Room state received:", data.room);
+      updateOpponentFromRoomData(data);
+    };
+
+    // Helper function to update opponent from room data
+    const updateOpponentFromRoomData = (data) => {
+      // Check if there are players in the room
+      if (data.room.players && data.room.players.length > 0) {
         const opponentPlayer = data.room.players.find(
           (player) => player.socketId !== socket.id
         );
-        console.log("Opponent Player:", opponentPlayer);
-        setOpponent(opponentPlayer);
+        if (opponentPlayer) {
+          console.log("Opponent found:", opponentPlayer);
+          setOpponent(opponentPlayer);
+        } else {
+          console.log("No opponent yet, waiting...");
+          setOpponent(null);
+        }
       }
     };
 
@@ -104,6 +121,7 @@ function MultiplayerGame({ roomName, playerName }) {
     };
 
     socket.on("player-joined", handlePlayerJoined);
+    socket.on("room-state", handleRoomState);
     socket.on("player-ready-changed", handlePlayerReadyChanged);
     socket.on("player-left", handlePlayerLeft);
     socket.on("game-start", handleGameStart);
@@ -113,6 +131,7 @@ function MultiplayerGame({ roomName, playerName }) {
     // Cleanup on unmount
     return () => {
       socket.off("player-joined", handlePlayerJoined);
+      socket.off("room-state", handleRoomState);
       socket.off("player-ready-changed", handlePlayerReadyChanged);
       socket.off("player-left", handlePlayerLeft);
       socket.off("game-start", handleGameStart);

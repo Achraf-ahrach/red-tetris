@@ -39,8 +39,11 @@ const MultiplayerSetup = () => {
     // Handle successful room join
     const handlePlayerJoined = (data) => {
       console.log("Successfully joined room:", data);
-      // Navigate to game after successful join
-      navigate(`/#${data.roomName}[${userData?.username}]`);
+      // Navigate to game after successful join (only if not already there)
+      const expectedHash = `#${data.roomName}[${userData?.username}]`;
+      if (window.location.hash !== expectedHash) {
+        navigate(`/${expectedHash}`);
+      }
     };
 
     // Handle room join error
@@ -225,7 +228,7 @@ const MultiplayerSetup = () => {
               {/* Player Info */}
               <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
                 <p className="text-gray-400 text-sm mb-1">Playing as:</p>
-                <p className="text-white font-bold">{userData?.nickname}</p>
+                <p className="text-white font-bold">{userData?.username}</p>
               </div>
             </div>
           </div>
