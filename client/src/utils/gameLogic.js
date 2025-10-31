@@ -25,7 +25,7 @@ export const getRandomTetromino = () => {
   };
 };
 
-// Rotate piece 90 degrees clockwise
+// Rotate piece 90 degrees clockwisew
 export const rotatePiece = (piece) => {
   const rotated = piece[0].map((_, index) =>
     piece.map((row) => row[index]).reverse()
@@ -100,6 +100,24 @@ export const clearLines = (board, linesToClear) => {
   return newBoard;
 };
 
+// Add garbage lines to the bottom of the board
+export const addGarbageLines = (board, numLines) => {
+  if (numLines <= 0) return board;
+
+  const newBoard = board.map((row) => [...row]);
+
+  newBoard.splice(0, numLines);
+
+  for (let i = 0; i < numLines; i++) {
+    const holeIndex = Math.floor(Math.random() * BOARD_WIDTH);
+    const garbageLine = Array(BOARD_WIDTH).fill ("#808080"); 
+    garbageLine[holeIndex] = EmptyCell.Empty; 
+    newBoard.push(garbageLine);
+  }
+
+  return newBoard;
+};
+
 // Calculate score based on lines cleared
 export const calculateScore = (linesCleared, level) => {
   const basePoints = {
@@ -134,7 +152,7 @@ export const getLowestValidPosition = (board, piece, x) => {
   }
   return y;
 };
-
+  
 // Get all possible rotations of a piece
 export const getAllRotations = (piece) => {
   const rotations = [piece];

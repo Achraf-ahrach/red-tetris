@@ -19,7 +19,6 @@ import {
   ArrowDown,
   Zap,
 } from "lucide-react";
-import Board from "@/components/game/Board";
 import BoardGlass from "@/components/game/BoardGlass";
 import OpponentBoard from "@/components/game/OpponentBoard";
 import { BOARD_WIDTH } from "@/types";
@@ -113,7 +112,7 @@ export default function GamePage() {
   const mode = useMemo(() => MODES[modeKey] || MODES.classic, [modeKey]);
 
   // Core game state
-  const [gameState, setGameState] = useState("idle"); // idle | playing | paused | over
+  const [gameState, setGameState] = useState("idle"); 
   const [board, setBoard] = useState(createEmptyBoard);
   const [currentPiece, setCurrentPiece] = useState(null);
   const [currentPosition, setCurrentPosition] = useState({
@@ -124,7 +123,7 @@ export default function GamePage() {
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [lines, setLines] = useState(0);
-
+    
   const boardWrapRef = useRef(null);
 
   // Mock opponent data for multiplayer (replace with real data from socket/API)

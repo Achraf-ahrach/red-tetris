@@ -13,6 +13,8 @@ import Success from "@/pages/auth/success";
 import ErrorPage from "@/pages/auth/error";
 import NotFoundPage from "@/pages/NotFound";
 import GameModeSelection from "@/pages/game/GameModeSelection";
+import MultiplayerLobby from "@/pages/game/MultiplayerLobby";
+import MultiplayerGameRoom from "@/pages/game/MultiplayerGameRoom";
 
 const router = createBrowserRouter([
   {
@@ -81,6 +83,14 @@ const router = createBrowserRouter([
       {
         path: "/game/play",
         element: <GamePlay />,
+      },
+      {
+        path: "/game/multiplayer",
+        element: <MultiplayerLobby />,
+      },
+      {
+        path: "/game/multiplayer/play",
+        element: <MultiplayerGameRoom />,
       },
       {
         path: "/profile",

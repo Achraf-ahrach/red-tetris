@@ -2,12 +2,14 @@ import express from "express";
 import authRoutes from "./authRoutes.js";
 import userRoutes from "./userRoutes.js";
 import achievementRoutes from "./achievementRoutes.js";
+import gameRoutes from "./gameRoutes.js";
 
 const router = express.Router();
 
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/achievements", achievementRoutes);
+router.use("/game", gameRoutes);
 
 // Health check
 router.get("/health", (req, res) => {

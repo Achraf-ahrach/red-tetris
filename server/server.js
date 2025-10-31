@@ -1,19 +1,35 @@
 import "dotenv/config";
 import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import cors from "cors";
 import passport from "./src/config/passport.js";
 import routes from "./src/routes/index.js";
+import { setupSocketHandlers } from "./src/config/socket.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(
-  cors({
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
     credentials: true,
-  })
-);
+  },
+});
+
+const PORT = process.env.PORT || 3000;
+
+// CORS configuration - optimized to reduce preflight requests
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["Content-Range", "X-Content-Range"],
+  maxAge: 86400,
+};
+
+// Middleware
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -23,6 +39,9 @@ app.use(passport.initialize());
 
 // Routes
 app.use("/api", routes);
+
+// Setup Socket.IO handlers
+setupSocketHandlers(io);
 
 // Root route
 app.get("/", (req, res) => {
@@ -51,7 +70,8 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Red Tetris Server running on http://localhost:${PORT}`);
+  console.log(`Socket.IO enabled for real-time multiplayer`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
 });
