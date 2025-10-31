@@ -24,7 +24,6 @@ export const UserMenu = () => {
       await logoutMutation.mutateAsync();
       navigate("/login");
     } catch (error) {
-      console.error("Logout error:", error);
       // The mutation handles token clearing automatically
       navigate("/login");
     }

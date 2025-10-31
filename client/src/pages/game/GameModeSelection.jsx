@@ -101,7 +101,7 @@ export default function GameModesPage() {
   return (
     <div className="min-h-screen bg-background pl-10">
       <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-3">
-        {[...Array(12)].map((_, i) => ( 
+        {[...Array(12)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-6 h-6 border border-primary rounded-sm"
@@ -161,7 +161,13 @@ export default function GameModesPage() {
                   mass: 0.7,
                 }}
               >
-                <Link to={`/game/play?mode=${mode.id}`}>
+                <Link
+                  to={
+                    mode.id === "multiplayer"
+                      ? "/game/multiplayer"
+                      : `/game/play?mode=${mode.id}`
+                  }
+                >
                   <Card className="relative bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 overflow-hidden group cursor-pointer rounded-2xl transition-colors duration-300">
                     {/* Large media area with overlay content (slightly smaller) */}
                     <div className="relative h-48 md:h-56 lg:h-64 overflow-hidden">

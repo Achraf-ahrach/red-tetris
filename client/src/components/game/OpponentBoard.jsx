@@ -37,7 +37,7 @@ const OpponentBoard = memo(function OpponentBoard({
         return { y, x, colorHex };
       })
     );
-  }, [opponentBoard]);
+  }, [opponentBoard, opponentName, opponentScore, opponentLines]);
 
   return (
     <div className="relative">

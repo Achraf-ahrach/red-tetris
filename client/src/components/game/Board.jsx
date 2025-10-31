@@ -2,6 +2,23 @@ import React from "react";
 import Cell from "./Cell";
 import { EmptyCell, BOARD_WIDTH, BOARD_HEIGHT } from "../../types";
 
+// Map tetromino codes to hex colors (same as BoardGlass)
+const COLOR_MAP = {
+  I: "#00e5ff",
+  O: "#facc15",
+  T: "#a855f7",
+  S: "#22c55e",
+  Z: "#ef4444",
+  J: "#3b82f6",
+  L: "#f59e0b",
+};
+
+const toHex = (value) => {
+  if (!value || value === EmptyCell.Empty) return null;
+  if (typeof value === "string" && value.startsWith("#")) return value;
+  return COLOR_MAP[value] || null;
+};
+
 const Board = ({ currentBoard, currentPiece, currentPosition, isGameOver }) => {
   // Create display board with current piece overlaid
   const getDisplayBoard = () => {
@@ -46,13 +63,10 @@ const Board = ({ currentBoard, currentPiece, currentPosition, isGameOver }) => {
         }}
       >
         {displayBoard.map((row, rowIndex) =>
-          row.map((cell, colIndex) => (
-            <Cell
-              key={`${rowIndex}-${colIndex}`}
-              type={cell}
-              isEmpty={cell === EmptyCell.Empty}
-            />
-          ))
+          row.map((cell, colIndex) => {
+            const colorHex = toHex(cell);
+            return <Cell key={`${rowIndex}-${colIndex}`} color={colorHex} />;
+          })
         )}
       </div>
 
