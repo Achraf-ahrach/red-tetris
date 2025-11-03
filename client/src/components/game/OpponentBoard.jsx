@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from "react";
-import { BOARD_WIDTH, BOARD_HEIGHT, EmptyCell } from "@/types";
+import { BOARD_WIDTH, BOARD_HEIGHT, EmptyCell, SOLID_PENALTY } from "@/types";
 
 // Map tetromino codes to hex colors (defined outside component for performance)
 const COLOR_MAP = {
@@ -14,6 +14,7 @@ const COLOR_MAP = {
 
 const toHex = (value) => {
   if (!value || value === EmptyCell.Empty) return null;
+  if (value === SOLID_PENALTY) return "#808080"; // penalty color
   if (typeof value === "string" && value.startsWith("#")) return value;
   return COLOR_MAP[value] || null;
 };

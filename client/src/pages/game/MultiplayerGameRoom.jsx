@@ -54,8 +54,8 @@ export default function MultiplayerGameRoom() {
   const [pieceSequence, setPieceSequence] = useState([]);
   const [currentPieceIndex, setCurrentPieceIndex] = useState(0);
 
-  // My game state
-  const [board, setBoard] = useState(createEmptyBoard);
+  // My game state - use function initializer to ensure fresh board
+  const [board, setBoard] = useState(() => createEmptyBoard());
   const [currentPiece, setCurrentPiece] = useState(null);
   const [currentPosition, setCurrentPosition] = useState({
     x: Math.floor(BOARD_WIDTH / 2) - 1,
@@ -66,8 +66,8 @@ export default function MultiplayerGameRoom() {
   const [level, setLevel] = useState(1);
   const [lines, setLines] = useState(0);
 
-  // Opponent state
-  const [opponentBoard, setOpponentBoard] = useState(createEmptyBoard());
+  // Opponent state - completely independent board
+  const [opponentBoard, setOpponentBoard] = useState(() => createEmptyBoard());
   const [opponentScore, setOpponentScore] = useState(0);
   const [opponentLines, setOpponentLines] = useState(0);
 
@@ -91,22 +91,23 @@ export default function MultiplayerGameRoom() {
   const processedGarbageEvents = useRef(new Set());
 
   // Track my base board (without garbage) vs opponent's base board
-  const myBaseBoard = useRef(board);
-  const opponentBaseBoard = useRef(opponentBoard);
+  // Initialize with fresh empty boards
+  const myBaseBoard = useRef(createEmptyBoard());
+  const opponentBaseBoard = useRef(createEmptyBoard());
 
-  // Update refs when state changes
+  // Update refs when state changes - ALWAYS use deep copies
   useEffect(() => {
     gameStateRef.current = gameState;
     currentPieceRef.current = currentPiece;
     currentPositionRef.current = currentPosition;
-    myBaseBoard.current = board;
+    // Deep copy to prevent reference sharing
+    myBaseBoard.current = board.map((row) => [...row]);
     garbageQueueRef.current = incomingGarbageQueue;
   }, [gameState, currentPiece, currentPosition, board, incomingGarbageQueue]);
 
-  // Calculate garbage to send based on lines cleared (AGGRESSIVE MODE - Every line sends garbage!)
+  // Calculate garbage to send based on lines cleared (n - 1 indestructible lines)
   const calculateGarbageToSend = useCallback((linesCleared) => {
-    // Simple rule: Each line cleared = 1 garbage line sent
-    return linesCleared > 0 ? linesCleared : 0;
+    return Math.max(0, (linesCleared || 0) - 1);
   }, []);
 
   // Game logic functions
@@ -223,28 +224,26 @@ export default function MultiplayerGameRoom() {
       }
     }
 
-    setBoard(finalBoard);
-    myBaseBoard.current = finalBoard;
+    // Create a deep copy of the final board before setting state
+    const finalBoardCopy = finalBoard.map((row) => [...row]);
+
+    setBoard(finalBoardCopy);
+    myBaseBoard.current = finalBoardCopy;
 
     // Send update to opponent
     if (roomId) {
-      const boardHeight = finalBoard.filter((row) =>
-        row.some((cell) => cell !== 0)
-      ).length;
-      const filledCells = finalBoard.flat().filter((cell) => cell !== 0).length;
-
-      // Create a deep copy to ensure no reference sharing
-      const boardCopy = finalBoard.map((row) => [...row]);
-
       // Verify the board is valid before sending
-      if (!Array.isArray(finalBoard) || finalBoard.length !== 20) {
+      if (!Array.isArray(finalBoardCopy) || finalBoardCopy.length !== 20) {
         return;
       }
+
+      // Create a separate deep copy for network transmission
+      const boardToSend = finalBoardCopy.map((row) => [...row]);
 
       socketService._emit("game-update", {
         roomId,
         gameState: {
-          board: boardCopy,
+          board: boardToSend,
           score: newScore,
           lines: newLines,
           level: newLevel,
@@ -412,18 +411,17 @@ export default function MultiplayerGameRoom() {
         return;
       }
 
-      // Only update the OPPONENT's board view, never touch my own board
-      const updatedBoard = board;
-
-      setOpponentBoard((prevOpponentBoard) => {
-        // Verify we're not accidentally using our own board
-        if (updatedBoard === myBaseBoard.current) {
-          return;
+      // Create a COMPLETE DEEP COPY to prevent any reference sharing
+      const opponentBoardCopy = board.map((row) => {
+        if (!Array.isArray(row)) {
+          return Array(BOARD_WIDTH).fill(0);
         }
-
-        opponentBaseBoard.current = updatedBoard;
-        return updatedBoard;
+        return [...row];
       });
+
+      // Update opponent board state with the deep copy
+      setOpponentBoard(opponentBoardCopy);
+      opponentBaseBoard.current = opponentBoardCopy;
 
       setOpponentScore(score || 0);
       setOpponentLines(lines || 0);
@@ -456,16 +454,20 @@ export default function MultiplayerGameRoom() {
         }
 
         setBoard((currentBoard) => {
-          const prevHeight = currentBoard.filter((row) =>
-            row.some((cell) => cell !== 0)
-          ).length;
-          const newBoard = addGarbageLines(currentBoard, garbageLines);
-          const newHeight = newBoard.filter((row) =>
-            row.some((cell) => cell !== 0)
-          ).length;
+          // Create a deep copy of current board first
+          const currentBoardCopy = currentBoard.map((row) => [...row]);
 
-          myBaseBoard.current = newBoard;
-          return newBoard;
+          // Add garbage lines (full-width indestructible)
+          const boardWithGarbage = addGarbageLines(
+            currentBoardCopy,
+            garbageLines
+          );
+
+          // Create another deep copy for state to ensure complete independence
+          const finalBoard = boardWithGarbage.map((row) => [...row]);
+
+          myBaseBoard.current = finalBoard;
+          return finalBoard;
         });
 
         // Adjust piece position up
