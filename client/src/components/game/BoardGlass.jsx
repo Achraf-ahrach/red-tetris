@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from "react";
 import Cell from "./Cell";
-import { BOARD_WIDTH, BOARD_HEIGHT, EmptyCell } from "@/types";
+import { BOARD_WIDTH, BOARD_HEIGHT, EmptyCell, SOLID_PENALTY } from "@/types";
 import { isValidMove } from "@/utils/gameLogic";
 
 // Map tetromino codes (I,O,T,S,Z,J,L) to hex colors
@@ -16,6 +16,7 @@ const COLOR_MAP = {
 
 const toHex = (value) => {
   if (!value || value === EmptyCell.Empty) return null;
+  if (value === SOLID_PENALTY) return "#808080"; // penalty color
   if (typeof value === "string" && value.startsWith("#")) return value;
   return COLOR_MAP[value] || null;
 };

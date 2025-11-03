@@ -228,41 +228,30 @@ export function setupSocketHandlers(io) {
         level: gameState.level,
         currentPiece: gameState.currentPiece,
       });
-    });    // Send garbage lines to opponent
+    }); // Send garbage lines to opponent
     socket.on("send-garbage", ({ roomId, garbageLines, linesCleared }) => {
       const room = gameRooms.get(roomId);
+      if (!room) return;
 
-      if (!room) {
-        return;
-      }
+      if (!linesCleared && !garbageLines) return;
 
       const actualGarbageLines =
-        garbageLines !== undefined
-          ? garbageLines
-          : linesCleared >= 4
-          ? 4
-          : linesCleared;
-      
-      // Only send if there's garbage to send
-      if (actualGarbageLines > 0) {
-        // Find opponent's socket ID
-        const opponent = room.players.find((p) => p.socketId !== socket.id);
-        if (!opponent) return;
+        garbageLines ?? (linesCleared >= 4 ? 4 : linesCleared);
 
-        // Generate unique event ID to prevent duplicate processing
-        const eventId = `${socket.id}-${Date.now()}-${Math.random()
-          .toString(36)
-          .substr(2, 9)}`;
+      const eventId = `${socket.id}-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
 
-        const payload = {
-          garbageLines: actualGarbageLines,
-          linesCleared: linesCleared || actualGarbageLines,
-          fromPlayer: socket.userData?.username || "Opponent",
-          eventId,
-          timestamp: Date.now(),
-        };
-        
-        // Send directly to opponent's socket, not to room
+      const payload = {
+        garbageLines: actualGarbageLines,
+        linesCleared: linesCleared || actualGarbageLines,
+        fromPlayer: socket.userData?.username || "Opponent",
+        eventId,
+        timestamp: Date.now(),
+      };
+
+      const opponents = room.players.filter((p) => p.socketId !== socket.id);
+      for (const opponent of opponents) {
         io.to(opponent.socketId).emit("receive-garbage", payload);
       }
     });
@@ -271,7 +260,7 @@ export function setupSocketHandlers(io) {
     socket.on("piece-move", ({ roomId, move }) => {
       const room = gameRooms.get(roomId);
       if (!room) return;
-      
+
       const opponent = room.players.find((p) => p.socketId !== socket.id);
       if (opponent) {
         io.to(opponent.socketId).emit("opponent-move", { move });
@@ -331,7 +320,7 @@ export function setupSocketHandlers(io) {
         if (opponent) {
           io.to(opponent.socketId).emit("opponent-left");
         }
-        
+
         room.players = room.players.filter((p) => p.socketId !== socket.id);
         if (room.players.length === 0) {
           gameRooms.delete(roomId);

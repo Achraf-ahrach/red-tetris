@@ -12,7 +12,8 @@ export const EmptyCell = {
   Empty: "Empty",
 };
 
-// ...existing code...
+// Indestructible penalty cell marker (full-width garbage)
+export const SOLID_PENALTY = "Penalty";
 
 // Tetris piece definitions
 export const TETROMINOES = {

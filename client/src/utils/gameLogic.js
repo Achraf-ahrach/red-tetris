@@ -5,6 +5,7 @@ import {
   BOARD_WIDTH,
   BOARD_HEIGHT,
   POINTS,
+  SOLID_PENALTY,
 } from "../types";
 
 // Create empty board
@@ -12,6 +13,17 @@ export const createEmptyBoard = () => {
   return Array(BOARD_HEIGHT)
     .fill(null)
     .map(() => Array(BOARD_WIDTH).fill(EmptyCell.Empty));
+};
+
+// Deep clone a board (new outer array + new row arrays)
+export const cloneBoard = (board) => {
+  if (!Array.isArray(board))
+    return Array(BOARD_HEIGHT)
+      .fill(null)
+      .map(() => Array(BOARD_WIDTH).fill(EmptyCell.Empty));
+  return board.map((row) =>
+    Array.isArray(row) ? [...row] : Array(BOARD_WIDTH).fill(EmptyCell.Empty)
+  );
 };
 
 // Get random tetromino
@@ -41,7 +53,7 @@ export const isValidMove = (board, piece, position) => {
     for (let col = 0; col < piece[row].length; col++) {
       if (piece[row][col] !== 0) {
         const newX = x + col;
-        const newY = y + row;
+        const newY = y + row; 
 
         // Check boundaries
         if (newX < 0 || newX >= BOARD_WIDTH || newY >= BOARD_HEIGHT) {
@@ -55,12 +67,15 @@ export const isValidMove = (board, piece, position) => {
       }
     }
   }
+
   return true;
 };
 
+
+
 // Place piece on board
 export const placePiece = (board, piece, position, color) => {
-  const newBoard = board.map((row) => [...row]);
+  const newBoard = cloneBoard(board);
   const { x, y } = position;
 
   for (let row = 0; row < piece.length; row++) {
@@ -76,11 +91,23 @@ export const placePiece = (board, piece, position, color) => {
   return newBoard;
 };
 
-// Find completed lines
+// Find completed lines (exclude penalty rows from being clearable)
 export const findCompletedLines = (board) => {
   const completedLines = [];
   for (let row = 0; row < BOARD_HEIGHT; row++) {
-    if (board[row].every((cell) => cell !== EmptyCell.Empty)) {
+    let hasPenalty = false;
+    let allFilled = true;
+    for (let col = 0; col < BOARD_WIDTH; col++) {
+      const cell = board[row][col];
+      if (cell === SOLID_PENALTY) {
+        hasPenalty = true;
+        break;
+      }
+      if (cell === EmptyCell.Empty) {
+        allFilled = false;
+      }
+    }
+    if (!hasPenalty && allFilled) {
       completedLines.push(row);
     }
   }
@@ -89,7 +116,8 @@ export const findCompletedLines = (board) => {
 
 // Clear completed lines
 export const clearLines = (board, linesToClear) => {
-  const newBoard = board.filter((_, index) => !linesToClear.includes(index));
+  const remaining = board.filter((_, index) => !linesToClear.includes(index));
+  const newBoard = remaining.map((row) => [...row]);
   const clearedLines = linesToClear.length;
 
   // Add new empty lines at the top
@@ -100,18 +128,18 @@ export const clearLines = (board, linesToClear) => {
   return newBoard;
 };
 
-// Add garbage lines to the bottom of the board
+// Add garbage lines to the bottom of the board (full-width, indestructible)
 export const addGarbageLines = (board, numLines) => {
-  if (numLines <= 0) return board;
+  if (numLines <= 0) return cloneBoard(board);
 
-  const newBoard = board.map((row) => [...row]);
+  const newBoard = [];
 
-  newBoard.splice(0, numLines);
+  for (let i = numLines; i < BOARD_HEIGHT; i++) {
+    newBoard.push([...board[i]]);
+  }
 
   for (let i = 0; i < numLines; i++) {
-    const holeIndex = Math.floor(Math.random() * BOARD_WIDTH);
-    const garbageLine = Array(BOARD_WIDTH).fill ("#808080"); 
-    garbageLine[holeIndex] = EmptyCell.Empty; 
+    const garbageLine = Array(BOARD_WIDTH).fill(SOLID_PENALTY);
     newBoard.push(garbageLine);
   }
 
@@ -152,7 +180,7 @@ export const getLowestValidPosition = (board, piece, x) => {
   }
   return y;
 };
-  
+
 // Get all possible rotations of a piece
 export const getAllRotations = (piece) => {
   const rotations = [piece];
