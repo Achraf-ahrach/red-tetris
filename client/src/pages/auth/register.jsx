@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, User, UserPlus } from "lucide-react";
+import { OAuth42Button } from "@/components/auth/OAuth42Button";
 import {
   Form,
   FormField,
@@ -57,8 +58,7 @@ export const Register = () => {
         password: data.password,
       });
       navigate("/login");
-    } catch (_error) {
-    }
+    } catch (_error) {}
   };
 
   return (
@@ -221,6 +221,8 @@ export const Register = () => {
           )}
         </Button>
       </form>
+
+      <OAuth42Button text="Sign up with 42" />
     </Form>
   );
 };

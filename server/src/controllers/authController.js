@@ -11,9 +11,9 @@ export class AuthController {
       // req.user is populated by Passport.js after successful authentication
       if (!req.user) {
         console.error("42 OAuth callback: No user found in request");
-        const clientUrl = process.env.CLIENT_URL || "http://localhost:5173/";
+        const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
         return res.redirect(
-          `${clientUrl}auth/error?message=${encodeURIComponent(
+          `${clientUrl}/auth/error?message=${encodeURIComponent(
             "Authentication failed - no user data"
           )}`
         );
@@ -24,8 +24,8 @@ export class AuthController {
       const refreshToken = this.userService.generateRefreshToken(req.user);
 
       // Redirect to frontend with tokens in URL
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173/";
-      const redirectUrl = `${clientUrl}auth/success?token=${encodeURIComponent(
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const redirectUrl = `${clientUrl}/auth/success?token=${encodeURIComponent(
         accessToken
       )}&refresh=${encodeURIComponent(refreshToken)}`;
 
@@ -33,9 +33,9 @@ export class AuthController {
       res.redirect(redirectUrl);
     } catch (error) {
       console.error("42 OAuth callback error:", error);
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173/";
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
       res.redirect(
-        `${clientUrl}auth/error?message=${encodeURIComponent(
+        `${clientUrl}/auth/error?message=${encodeURIComponent(
           "Authentication failed"
         )}`
       );

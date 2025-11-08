@@ -18,6 +18,7 @@ export const users = pgTable("users", {
   username: varchar("username", { length: 100 }).notNull().unique(),
   password: varchar("password", { length: 255 }),
   avatar: text("avatar"),
+  fortyTwoId: varchar("forty_two_id", { length: 100 }).unique(),
 
   totalGames: integer("total_games").default(0),
   totalWins: integer("total_wins").default(0),

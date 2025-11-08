@@ -3,8 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, LogIn } from "lucide-react";
+import { OAuth42Button } from "@/components/auth/OAuth42Button";
 import {
   Form,
   FormField,
@@ -139,6 +139,8 @@ export const Login = () => {
           </Button>
         </form>
       </Form>
+
+      <OAuth42Button text="Sign in with 42" />
     </>
   );
 };
