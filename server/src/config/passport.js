@@ -29,16 +29,15 @@ if (process.env.FORTY_TWO_CLIENT_ID && process.env.FORTY_TWO_CLIENT_SECRET) {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-
           // Extract user data from profile
           const userData = {
             email: profile.emails?.[0]?.value || null,
             username: profile.username || profile.login || null,
             firstName: profile.name?.givenName || profile.first_name || null,
             lastName: profile.name?.familyName || profile.last_name || null,
+            avatar: profile._json?.image?.link || null,
             fortyTwoId: profile.id,
           };
-
 
           // Check if user already exists by 42 ID or email
           let user = null;
@@ -52,10 +51,15 @@ if (process.env.FORTY_TWO_CLIENT_ID && process.env.FORTY_TWO_CLIENT_SECRET) {
 
           if (user) {
             // Update existing user with 42 data if needed
+            const updates = {};
             if (!user.fortyTwoId && userData.fortyTwoId) {
-              await userRepo.updateUser(user.id, {
-                fortyTwoId: userData.fortyTwoId,
-              });
+              updates.fortyTwoId = userData.fortyTwoId;
+            }
+            if (!user.avatar && userData.avatar) {
+              updates.avatar = userData.avatar;
+            }
+            if (Object.keys(updates).length > 0) {
+              await userRepo.updateUser(user.id, updates);
             }
             return done(null, user);
           }
@@ -77,6 +81,7 @@ if (process.env.FORTY_TWO_CLIENT_ID && process.env.FORTY_TWO_CLIENT_SECRET) {
             lastName: userData.lastName,
             username: userData.username,
             email: userData.email,
+            avatar: userData.avatar,
             fortyTwoId: userData.fortyTwoId,
             // No password for OAuth users
           });
