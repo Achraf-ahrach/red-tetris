@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import {
+  useSearchParams,
+  useNavigate,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +19,10 @@ import {
   ArrowRight,
   ArrowDown,
   Zap,
+  Crown,
+  Share2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { motion } from "motion/react";
 import socketService from "@/services/socketService";
@@ -36,12 +45,53 @@ import {
 
 /**
  * Multiplayer Game Room - Play page with full Tetris game logic
+ * URL Format: /<roomName>/<playerName>
  */
 export default function MultiplayerGameRoom() {
   const { user } = useAuth();
+  const params = useParams();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const roomId = searchParams.get("roomId");
+
+  // Extract from URL: /<roomName>/<playerName>
+  const roomNameFromUrl = params.roomName;
+  const playerNameFromUrl = params.playerName;
+  const roomIdFromState = location.state?.roomId;
+  const roomIdFromQuery = searchParams.get("roomId");
+
+  // Use player name from authenticated user (prioritize over URL for security)
+  // If URL has a different name, show warning but still use authenticated username
+  const playerName =
+    user?.username ||
+    (playerNameFromUrl ? decodeURIComponent(playerNameFromUrl) : "Guest");
+
+  // Warn if URL player name doesn't match authenticated user
+  useEffect(() => {
+    if (
+      user &&
+      playerNameFromUrl &&
+      decodeURIComponent(playerNameFromUrl) !== user.username
+    ) {
+      console.warn(
+        `URL player name "${decodeURIComponent(
+          playerNameFromUrl
+        )}" doesn't match authenticated user "${
+          user.username
+        }". Using authenticated username.`
+      );
+    }
+  }, [user, playerNameFromUrl]);
+
+  // Room ID state
+  const [roomId, setRoomId] = useState(roomIdFromState || roomIdFromQuery);
+  const [roomName, setRoomName] = useState(
+    roomNameFromUrl ? decodeURIComponent(roomNameFromUrl) : ""
+  );
+  const [isHost, setIsHost] = useState(false);
+  const [playerCount, setPlayerCount] = useState(0);
+  const [urlCopied, setUrlCopied] = useState(false);
+  const [opponentLeftMessage, setOpponentLeftMessage] = useState(null);
 
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
@@ -331,7 +381,8 @@ export default function MultiplayerGameRoom() {
 
   // Connect and listen for events
   useEffect(() => {
-    if (!roomId) {
+    // Redirect if no room info available
+    if (!roomId && !roomNameFromUrl) {
       navigate("/game/multiplayer");
       return;
     }
@@ -340,20 +391,78 @@ export default function MultiplayerGameRoom() {
       try {
         await socketService.connect();
         setIsConnected(true);
-      } catch (error) {}
+      } catch (error) {
+        console.error("Connection failed:", error);
+        alert("Failed to connect to server");
+        navigate("/game/multiplayer");
+      }
     };
 
     connectSocket();
-  }, [roomId, navigate]);
+  }, [roomId, roomNameFromUrl, navigate]);
 
   // Game event listeners
   useEffect(() => {
     if (!isConnected) return;
 
+    // Room found (when joining by name)
+    const handleRoomFound = ({
+      roomId: foundRoomId,
+      roomName: foundRoomName,
+    }) => {
+      console.log("Room found:", foundRoomId, foundRoomName);
+      setRoomId(foundRoomId);
+      setRoomName(foundRoomName);
+    };
+
+    // Room not found
+    const handleRoomNotFound = ({ roomName: notFoundRoomName }) => {
+      alert(
+        `Room "${notFoundRoomName}" not found or has ended.\n\nRedirecting to lobby...`
+      );
+      navigate("/game/multiplayer");
+    };
+
+    // Room joined successfully
+    const handleRoomJoined = ({
+      roomId: joinedRoomId,
+      isHost: hostStatus,
+      room,
+    }) => {
+      console.log("Room joined:", room, "isHost:", hostStatus);
+      setRoomId(joinedRoomId);
+      setRoomName(room.roomName);
+      setIsHost(hostStatus);
+      setPieceSequence(room.pieceSequence);
+      setPlayerCount(room.players.length);
+
+      // Find opponent
+      const otherPlayers = room.players.filter(
+        (p) => p.username !== playerName
+      );
+      if (otherPlayers.length > 0) {
+        setOpponent(otherPlayers[0]);
+      }
+    };
+
+    // Host transferred
+    const handleHostTransferred = ({ isHost: newIsHost }) => {
+      setIsHost(newIsHost);
+    };
+
     // Player joined room
-    const handlePlayerJoined = ({ player }) => {
-      if (player.username !== user.username) {
+    const handlePlayerJoined = ({ player, playerCount: count }) => {
+      setPlayerCount(count);
+      if (player.username !== playerName) {
         setOpponent(player);
+      }
+    };
+
+    // Player left room
+    const handlePlayerLeft = ({ playerCount: count }) => {
+      setPlayerCount(count);
+      if (count === 1) {
+        setOpponent(null);
       }
     };
 
@@ -483,24 +592,68 @@ export default function MultiplayerGameRoom() {
     };
 
     // Opponent left
-    const handleOpponentLeft = () => {
-      alert("Opponent left the game!");
-      navigate("/game/multiplayer");
+    const handleOpponentLeft = ({ player }) => {
+      const opponentName = player?.username || "Opponent";
+
+      // Only handle if in lobby (waiting state)
+      // If game is active, server will send game-end event instead
+      if (gameState === "waiting") {
+        setOpponent(null);
+        setOpponentBoard(createEmptyBoard());
+        setOpponentScore(0);
+        setOpponentLines(0);
+
+        // Show notification in lobby
+        setOpponentLeftMessage(`${opponentName} has left the room.`);
+        setTimeout(() => setOpponentLeftMessage(null), 5000);
+      }
     };
 
     // Opponent disconnected
-    const handleOpponentDisconnected = () => {
-      alert("Opponent disconnected!");
-      navigate("/game/multiplayer");
+    const handleOpponentDisconnected = ({ player }) => {
+      const opponentName = player?.username || "Opponent";
+
+      // Only handle if in lobby (waiting state)
+      // If game is active, server will send game-end event instead
+      if (gameState === "waiting") {
+        setOpponent(null);
+        setOpponentBoard(createEmptyBoard());
+        setOpponentScore(0);
+        setOpponentLines(0);
+
+        // Show notification in lobby
+        setOpponentLeftMessage(`${opponentName} has disconnected.`);
+        setTimeout(() => setOpponentLeftMessage(null), 5000);
+      }
     };
 
     // Game end
-    const handleGameEnd = ({ winner: winnerData }) => {
+    const handleGameEnd = ({ winner: winnerData, loser }) => {
       setGameState("finished");
-      setWinner(winnerData);
+
+      // Clear opponent state
+      setOpponent(null);
+      setOpponentBoard(createEmptyBoard());
+      setOpponentScore(0);
+      setOpponentLines(0);
+
+      // Set winner with reason if loser left/disconnected
+      if (loser?.reason) {
+        setWinner({
+          ...winnerData,
+          reason: `${loser.username || "Opponent"} ${loser.reason}`,
+        });
+      } else {
+        setWinner(winnerData);
+      }
     };
 
+    socketService._on("room-found", handleRoomFound);
+    socketService._on("room-not-found", handleRoomNotFound);
+    socketService._on("room-joined", handleRoomJoined);
+    socketService._on("host-transferred", handleHostTransferred);
     socketService._on("player-joined", handlePlayerJoined);
+    socketService._on("player-left", handlePlayerLeft);
     socketService._on("match-found", handleMatchFound);
     socketService._on("game-starting", handleGameStarting);
     socketService._on("game-start", handleGameStart);
@@ -511,7 +664,12 @@ export default function MultiplayerGameRoom() {
     socketService._on("game-end", handleGameEnd);
 
     return () => {
+      socketService._off("room-found", handleRoomFound);
+      socketService._off("room-not-found", handleRoomNotFound);
+      socketService._off("room-joined", handleRoomJoined);
+      socketService._off("host-transferred", handleHostTransferred);
       socketService._off("player-joined", handlePlayerJoined);
+      socketService._off("player-left", handlePlayerLeft);
       socketService._off("match-found", handleMatchFound);
       socketService._off("game-starting", handleGameStarting);
       socketService._off("game-start", handleGameStart);
@@ -521,13 +679,60 @@ export default function MultiplayerGameRoom() {
       socketService._off("opponent-disconnected", handleOpponentDisconnected);
       socketService._off("game-end", handleGameEnd);
     };
-  }, [isConnected, user, navigate, pieceSequence]);
+  }, [isConnected, playerName, navigate, pieceSequence]);
+
+  // Join room after connected
+  useEffect(() => {
+    if (!isConnected) return;
+
+    // If we have roomId, join directly
+    if (roomId) {
+      console.log("Joining room:", roomId, "as", playerName);
+      socketService._emit("join-room", {
+        roomId,
+        userId: user?.id || `guest-${Date.now()}`,
+        username: playerName,
+      });
+      return;
+    }
+
+    // If we have room name from URL, find it first
+    if (roomNameFromUrl) {
+      console.log("Looking up room:", roomName);
+      socketService._emit("get-room-by-name", { roomName });
+    }
+  }, [isConnected, roomId, roomNameFromUrl, roomName, playerName, user]);
 
   const leaveRoom = () => {
     if (roomId) {
       socketService._emit("leave-room", { roomId });
     }
     navigate("/game/multiplayer");
+  };
+
+  const handleHostStartGame = () => {
+    if (isHost && roomId) {
+      socketService._emit("host-start-game", { roomId });
+    }
+  };
+
+  const copyShareUrl = async () => {
+    if (!roomName || !playerName) return;
+
+    // Generate shareable URL with actual player name
+    const shareUrl = `${window.location.origin}/${encodeURIComponent(
+      roomName
+    )}/${encodeURIComponent(playerName)}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setUrlCopied(true);
+      setTimeout(() => setUrlCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy URL:", err);
+      // Fallback: show alert with URL
+      alert(`Share this URL:\n\n${shareUrl}`);
+    }
   };
 
   return (
@@ -546,29 +751,130 @@ export default function MultiplayerGameRoom() {
           </div>
         )}
 
-        {/* Waiting for Opponent */}
+        {/* Waiting for Opponent or Host to Start */}
         {gameState === "waiting" && (
           <div className="flex items-center justify-center min-h-screen">
-            <Card className="max-w-md mx-auto">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Waiting for Opponent...
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  The game will start automatically when another player joins.
-                </p>
-                <div className="flex items-center justify-center gap-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <Button variant="outline" onClick={leaveRoom}>
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Lobby
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="max-w-md mx-auto space-y-4">
+              {/* Opponent Left/Disconnected Notification */}
+              {opponentLeftMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-600 dark:text-yellow-400"
+                >
+                  <p className="text-sm font-medium">{opponentLeftMessage}</p>
+                </motion.div>
+              )}
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    {isHost && <Crown className="w-5 h-5 text-yellow-500" />}
+                    <Users className="w-5 h-5" />
+                    {roomName || "Game Room"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Players</span>
+                      <Badge variant="secondary">{playerCount} / 2</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Your Name</span>
+                      <span className="font-semibold">{playerName}</span>
+                    </div>
+                    {opponent && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Opponent</span>
+                        <span className="font-semibold">
+                          {opponent.username}
+                        </span>
+                      </div>
+                    )}
+                    {isHost && (
+                      <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-500">
+                        <Crown className="w-4 h-4" />
+                        You are the host
+                      </div>
+                    )}
+                  </div>
+
+                  {isHost ? (
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground text-sm">
+                        {playerCount < 2
+                          ? "Waiting for another player to join..."
+                          : "Both players ready! Click Start Game to begin."}
+                      </p>
+                      <Button
+                        onClick={handleHostStartGame}
+                        className="w-full"
+                        disabled={playerCount < 2}
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        {playerCount < 2
+                          ? "Waiting for Players..."
+                          : "Start Game"}
+                      </Button>
+                      {playerCount < 2 && (
+                        <Button
+                          onClick={copyShareUrl}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          {urlCopied ? (
+                            <>
+                              <Check className="w-4 h-4 mr-2" />
+                              URL Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Share2 className="w-4 h-4 mr-2" />
+                              Share Invite URL
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground">
+                        Waiting for host to start the game...
+                      </p>
+                      <Button
+                        onClick={copyShareUrl}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        {urlCopied ? (
+                          <>
+                            <Check className="w-4 h-4 mr-2" />
+                            URL Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="w-4 h-4 mr-2" />
+                            Share Invite URL
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-center gap-4 pt-2">
+                    {!isHost && (
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    )}
+                    <Button variant="outline" onClick={leaveRoom}>
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Leave Room
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
 
@@ -820,7 +1126,7 @@ export default function MultiplayerGameRoom() {
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-2">
                     <Trophy className="w-6 h-6" />
-                    {winner.username === user.username ? (
+                    {winner.username === playerName ? (
                       <span className="text-green-500">🎉 Victory!</span>
                     ) : (
                       <span className="text-red-500">Defeat</span>
@@ -830,13 +1136,16 @@ export default function MultiplayerGameRoom() {
                 <CardContent className="space-y-4">
                   {/* Winner/Loser Message */}
                   <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
-                    {winner.username === user.username ? (
+                    {winner.username === playerName ? (
                       <div>
                         <div className="text-xl font-bold text-green-400 mb-1">
                           You Won!
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {opponent?.username} lost the game
+                          {winner.reason ||
+                            (opponent?.username
+                              ? `${opponent.username} lost the game`
+                              : "Opponent lost the game")}
                         </div>
                       </div>
                     ) : (
@@ -881,6 +1190,13 @@ export default function MultiplayerGameRoom() {
                 </CardContent>
               </Card>
             </motion.div>
+          </div>
+        )}
+
+        {/* Opponent Left Notification */}
+        {opponentLeftMessage && (
+          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white text-sm font-semibold rounded-lg py-2 px-4 shadow-lg z-50">
+            {opponentLeftMessage}
           </div>
         )}
       </div>

@@ -100,6 +100,11 @@ const router = createBrowserRouter([
         path: "/leaderboard",
         element: <Leaderboard />,
       },
+      // URL-based game room access: /<room>/<player>
+      {
+        path: "/:roomName/:playerName",
+        element: <MultiplayerGameRoom />,
+      },
     ],
   },
   {

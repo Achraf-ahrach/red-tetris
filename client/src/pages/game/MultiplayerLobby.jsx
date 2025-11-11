@@ -40,15 +40,12 @@ export default function MultiplayerLobby() {
         await socketService.connect();
         setIsConnected(true);
         requestRoomList();
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     connectSocket();
 
-    return () => {
-    
-    };
+    return () => {};
   }, []);
 
   // Listen for room updates
@@ -60,16 +57,38 @@ export default function MultiplayerLobby() {
       setIsLoading(false);
     };
 
-    const handleRoomCreated = ({ roomId }) => {
-      // Join the room immediately
-      joinRoom(roomId);
+    const handleRoomCreated = ({ roomId, roomName }) => {
+      setIsCreating(false);
+
+      // Generate shareable URL with room name format: /<room>/<player>
+      const shareUrl = `${window.location.origin}/${encodeURIComponent(
+        roomName
+      )}/${encodeURIComponent(user.username)}`;
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(shareUrl).catch(() => {
+        console.log("Could not copy to clipboard");
+      });
+
+      // Auto-join the room (creator joins automatically)
+      navigate(
+        `/${encodeURIComponent(roomName)}/${encodeURIComponent(user.username)}`,
+        {
+          state: { room: { roomName }, roomId },
+        }
+      );
     };
 
     const handleRoomJoined = ({ roomId, room }) => {
-      // Navigate to game with room info
-      navigate(`/game/multiplayer/play?roomId=${roomId}`, {
-        state: { room },
-      });
+      // Navigate to game using URL format: /<room>/<player>
+      navigate(
+        `/${encodeURIComponent(room.roomName)}/${encodeURIComponent(
+          user.username
+        )}`,
+        {
+          state: { room, roomId },
+        }
+      );
     };
 
     const handleError = ({ message }) => {
