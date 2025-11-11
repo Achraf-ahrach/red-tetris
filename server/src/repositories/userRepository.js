@@ -45,7 +45,6 @@ export class UserRepository {
 
   async create(userData) {
     try {
-
       const result = await db.insert(users).values(userData).returning();
 
       if (!result || result.length === 0) {
@@ -110,5 +109,36 @@ export class UserRepository {
       .limit(limit)
       .offset(offset);
     return rows;
+  }
+
+  async getGameStatsByMode(userId) {
+    const allGames = await db
+      .select()
+      .from(gameHistory)
+      .where(eq(gameHistory.userId, userId));
+
+    const statsByMode = {
+      classic: { total: 0, wins: 0, highScore: 0, totalLines: 0 },
+      ranked: { total: 0, wins: 0, highScore: 0, totalLines: 0 },
+      multiplayer: { total: 0, wins: 0, highScore: 0, totalLines: 0 },
+    };
+
+    allGames.forEach((game) => {
+      const mode = game.gameMode || "classic";
+      if (statsByMode[mode]) {
+        statsByMode[mode].total++;
+        if (game.result === "win") {
+          statsByMode[mode].wins++;
+        }
+        // Track high score
+        if (game.score > statsByMode[mode].highScore) {
+          statsByMode[mode].highScore = game.score;
+        }
+        // Track total lines
+        statsByMode[mode].totalLines += game.lines || 0;
+      }
+    });
+
+    return statsByMode;
   }
 }

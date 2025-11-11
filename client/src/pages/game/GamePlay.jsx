@@ -34,6 +34,8 @@ import {
   isGameOver as checkGameOver,
   getDropSpeed,
 } from "@/utils/gameLogic";
+import { useAuth } from "@/hooks/useAuth";
+import { useSaveGameHistory } from "@/api/game/mutations";
 
 // Mode configuration (UI + simple UX rules)
 const MODES = {
@@ -111,8 +113,12 @@ export default function GamePage() {
   const modeKey = (searchParams.get("mode") || "classic").toLowerCase();
   const mode = useMemo(() => MODES[modeKey] || MODES.classic, [modeKey]);
 
+  // Auth and mutations
+  const { user } = useAuth();
+  const saveGameHistoryMutation = useSaveGameHistory();
+
   // Core game state
-  const [gameState, setGameState] = useState("idle"); 
+  const [gameState, setGameState] = useState("idle");
   const [board, setBoard] = useState(createEmptyBoard);
   const [currentPiece, setCurrentPiece] = useState(null);
   const [currentPosition, setCurrentPosition] = useState({
@@ -123,7 +129,8 @@ export default function GamePage() {
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [lines, setLines] = useState(0);
-    
+  const [gameStartTime, setGameStartTime] = useState(null);
+
   const boardWrapRef = useRef(null);
 
   // Mock opponent data for multiplayer (replace with real data from socket/API)
@@ -156,6 +163,7 @@ export default function GamePage() {
     setLevel(1);
     setLines(0);
     setGameState("playing");
+    setGameStartTime(Date.now());
 
     // Bring board into view
     setTimeout(() => {
@@ -165,6 +173,47 @@ export default function GamePage() {
       });
     }, 0);
   }, []);
+
+  // Save game history when game ends
+  const saveGameHistoryData = useCallback(() => {
+    // Only save for authenticated users and non-multiplayer modes
+    // (multiplayer saves history on server side)
+    if (!user?.id || modeKey === "multiplayer") return;
+
+    const duration = gameStartTime
+      ? Math.floor((Date.now() - gameStartTime) / 1000)
+      : 0;
+
+    const gameData = {
+      score,
+      lines,
+      duration,
+      level,
+      result: "loss", // Single player games are always "loss" when game over
+      gameMode: modeKey, // 'classic' or 'ranked'
+      opponentId: null,
+      opponentName: null,
+      roomName: null,
+      metadata:
+        modeKey === "ranked"
+          ? JSON.stringify({
+              finalLevel: level,
+              finalScore: score,
+              finalLines: lines,
+            })
+          : null,
+    };
+
+    saveGameHistoryMutation.mutate({ userId: user.id, gameData });
+  }, [
+    user,
+    modeKey,
+    score,
+    lines,
+    level,
+    gameStartTime,
+    saveGameHistoryMutation,
+  ]);
 
   const movePiece = useCallback(
     (dx, dy) => {
@@ -227,6 +276,8 @@ export default function GamePage() {
 
     if (checkGameOver(finalBoard)) {
       setGameState("over");
+      // Save game history for classic and ranked modes
+      saveGameHistoryData();
       return;
     }
 
@@ -236,7 +287,15 @@ export default function GamePage() {
     setCurrentPiece(next);
     setNextPiece(nextNext);
     setCurrentPosition({ x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 });
-  }, [board, currentPiece, currentPosition, nextPiece, lines, level]);
+  }, [
+    board,
+    currentPiece,
+    currentPosition,
+    nextPiece,
+    lines,
+    level,
+    saveGameHistoryData,
+  ]);
 
   // Auto drop loop
   useEffect(() => {
@@ -308,6 +367,7 @@ export default function GamePage() {
     setCurrentPiece(null);
     setNextPiece(null);
     setCurrentPosition({ x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 });
+    setGameStartTime(null);
   };
 
   return (

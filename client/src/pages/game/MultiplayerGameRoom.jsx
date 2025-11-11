@@ -5,6 +5,7 @@ import {
   useParams,
   useLocation,
 } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,7 @@ import {
  */
 export default function MultiplayerGameRoom() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const params = useParams();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -66,20 +68,14 @@ export default function MultiplayerGameRoom() {
     user?.username ||
     (playerNameFromUrl ? decodeURIComponent(playerNameFromUrl) : "Guest");
 
-  // Warn if URL player name doesn't match authenticated user
+  // Validate URL player name matches authenticated user
   useEffect(() => {
     if (
       user &&
       playerNameFromUrl &&
       decodeURIComponent(playerNameFromUrl) !== user.username
     ) {
-      console.warn(
-        `URL player name "${decodeURIComponent(
-          playerNameFromUrl
-        )}" doesn't match authenticated user "${
-          user.username
-        }". Using authenticated username.`
-      );
+      // Silent validation - use authenticated username regardless
     }
   }, [user, playerNameFromUrl]);
 
@@ -392,7 +388,6 @@ export default function MultiplayerGameRoom() {
         await socketService.connect();
         setIsConnected(true);
       } catch (error) {
-        console.error("Connection failed:", error);
         alert("Failed to connect to server");
         navigate("/game/multiplayer");
       }
@@ -410,7 +405,6 @@ export default function MultiplayerGameRoom() {
       roomId: foundRoomId,
       roomName: foundRoomName,
     }) => {
-      console.log("Room found:", foundRoomId, foundRoomName);
       setRoomId(foundRoomId);
       setRoomName(foundRoomName);
     };
@@ -429,7 +423,6 @@ export default function MultiplayerGameRoom() {
       isHost: hostStatus,
       room,
     }) => {
-      console.log("Room joined:", room, "isHost:", hostStatus);
       setRoomId(joinedRoomId);
       setRoomName(room.roomName);
       setIsHost(hostStatus);
@@ -646,6 +639,12 @@ export default function MultiplayerGameRoom() {
       } else {
         setWinner(winnerData);
       }
+
+      // Invalidate profile and game history cache to trigger refresh
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
+        queryClient.invalidateQueries({ queryKey: ["me", "history", user.id] });
+      }
     };
 
     socketService._on("room-found", handleRoomFound);
@@ -687,7 +686,6 @@ export default function MultiplayerGameRoom() {
 
     // If we have roomId, join directly
     if (roomId) {
-      console.log("Joining room:", roomId, "as", playerName);
       socketService._emit("join-room", {
         roomId,
         userId: user?.id || `guest-${Date.now()}`,
@@ -698,7 +696,6 @@ export default function MultiplayerGameRoom() {
 
     // If we have room name from URL, find it first
     if (roomNameFromUrl) {
-      console.log("Looking up room:", roomName);
       socketService._emit("get-room-by-name", { roomName });
     }
   }, [isConnected, roomId, roomNameFromUrl, roomName, playerName, user]);
@@ -729,7 +726,6 @@ export default function MultiplayerGameRoom() {
       setUrlCopied(true);
       setTimeout(() => setUrlCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy URL:", err);
       // Fallback: show alert with URL
       alert(`Share this URL:\n\n${shareUrl}`);
     }

@@ -18,7 +18,12 @@ const staggerContainer = {
   },
 };
 
-export default function AchievementsGrid({ achievements, userData, variants }) {
+export default function AchievementsGrid({
+  achievements,
+  userData,
+  variants,
+  showTitle = true,
+}) {
   const items = achievements ?? userData?.achievements ?? [];
   const carouselRef = useRef(null);
 
@@ -38,36 +43,38 @@ export default function AchievementsGrid({ achievements, userData, variants }) {
       animate="animate"
       className="mb-10"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Award className="w-4 h-4 text-muted-foreground " />
-          Achievements
-          <span className="text-xs text-muted-foreground font-normal">
-            ({items.length})
-          </span>
-        </h2>
+      {showTitle && (
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Award className="w-4 h-4 text-muted-foreground " />
+            Achievements
+            <span className="text-xs text-muted-foreground font-normal">
+              ({items.length})
+            </span>
+          </h2>
 
-        {items.length > 0 && (
-          <div className="hidden md:flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Scroll left"
-              onClick={scrollLeft}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card hover:bg-accent hover:text-accent-foreground"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              aria-label="Scroll right"
-              onClick={scrollRight}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card hover:bg-accent hover:text-accent-foreground"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-      </div>
+          {items.length > 0 && (
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Scroll left"
+                onClick={scrollLeft}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card hover:bg-accent hover:text-accent-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="Scroll right"
+                onClick={scrollRight}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card hover:bg-accent hover:text-accent-foreground"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Carousel */}
       <div className="relative">

@@ -65,7 +65,6 @@ if (process.env.FORTY_TWO_CLIENT_ID && process.env.FORTY_TWO_CLIENT_SECRET) {
           }
 
           // Create new user
-          console.log("Creating new user from 42 OAuth");
 
           // Ensure we have a unique username
           if (!userData.username) {
@@ -86,17 +85,15 @@ if (process.env.FORTY_TWO_CLIENT_ID && process.env.FORTY_TWO_CLIENT_SECRET) {
             // No password for OAuth users
           });
 
-          console.log("New user created:", newUser.id);
           return done(null, newUser);
         } catch (error) {
-          console.error("42 OAuth strategy error:", error);
           return done(error, null);
         }
       }
     )
   );
 } else {
-  console.log("42 OAuth not configured - skipping strategy setup");
+  // 42 OAuth not configured - skipping strategy setup
 }
 
 export default passport;

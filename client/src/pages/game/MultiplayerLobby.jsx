@@ -67,7 +67,7 @@ export default function MultiplayerLobby() {
 
       // Copy to clipboard
       navigator.clipboard.writeText(shareUrl).catch(() => {
-        console.log("Could not copy to clipboard");
+        // Silent fail - user can still copy manually
       });
 
       // Auto-join the room (creator joins automatically)

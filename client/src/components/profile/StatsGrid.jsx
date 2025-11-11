@@ -16,7 +16,10 @@ const staggerContainer = {
   },
 };
 
-export default function StatsGrid({ stats, userData }) {
+export default function StatsGrid({ userData }) {
+  // Calculate multiplayer-specific stats
+  const multiplayerGames = userData.statsByMode?.multiplayer?.totalGames || 0;
+
   return (
     <motion.div
       variants={staggerContainer}
@@ -26,15 +29,17 @@ export default function StatsGrid({ stats, userData }) {
     >
       {[
         {
-          label: "Games",
+          label: "Total Games",
           value: userData.stats.totalGames,
+          subtitle: "All modes",
           color: "text-primary",
           icon: "🎮",
           bg: "bg-primary/5",
         },
         {
-          label: "Wins",
+          label: "MP Wins",
           value: userData.stats.wins,
+          subtitle: `${multiplayerGames} MP games`,
           color: "text-green-400",
           icon: "🏆",
           bg: "bg-green-400/5",
@@ -42,6 +47,7 @@ export default function StatsGrid({ stats, userData }) {
         {
           label: "Win Rate",
           value: `${userData.stats.winRate}%`,
+          subtitle: "Multiplayer",
           color: "text-accent",
           icon: "📊",
           bg: "bg-accent/5",
@@ -49,6 +55,7 @@ export default function StatsGrid({ stats, userData }) {
         {
           label: "Streak",
           value: userData.stats.currentStreak,
+          subtitle: "Multiplayer",
           color: "text-orange-400",
           icon: "🔥",
           bg: "bg-orange-400/5",
@@ -70,6 +77,11 @@ export default function StatsGrid({ stats, userData }) {
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
               {stat.label}
             </div>
+            {stat.subtitle && (
+              <div className="text-[9px] text-muted-foreground/60 mt-0.5">
+                {stat.subtitle}
+              </div>
+            )}
           </Card>
         </motion.div>
       ))}

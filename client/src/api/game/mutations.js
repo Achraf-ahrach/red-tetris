@@ -126,3 +126,35 @@ export const useLeaveGameSession = () => {
     },
   });
 };
+
+/**
+ * Save game history
+ */
+export const useSaveGameHistory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId, gameData }) => {
+      const response = await apiPost(`/users/${userId}/history`, gameData);
+      if (response.error) {
+        throw new Error(
+          response.data?.message || "Failed to save game history"
+        );
+      }
+      return response.data;
+    },
+    onSuccess: (_, { userId }) => {
+      // Invalidate game history cache for this user
+      queryClient.invalidateQueries({
+        queryKey: gameKeys.userHistory(userId),
+      });
+      // Invalidate user stats
+      queryClient.invalidateQueries({ queryKey: gameKeys.stats() });
+      // Invalidate auth user data if current user
+      queryClient.invalidateQueries({ queryKey: authKeys.currentUser() });
+      // Invalidate profile data to force refresh
+      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
+      queryClient.invalidateQueries({ queryKey: ["me", "history", userId] });
+    },
+  });
+};

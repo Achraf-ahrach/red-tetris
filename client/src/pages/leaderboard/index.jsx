@@ -7,20 +7,6 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Trophy, Medal, Crown } from "lucide-react";
 import { userAPI } from "../../services/api";
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
-};
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.04,
-    },
-  },
-};
-
 const getRankIcon = (rank) => {
   if (rank === 1) return <Crown className="w-6 h-6 text-yellow-400" />;
   if (rank === 2) return <Medal className="w-6 h-6 text-gray-400" />;
@@ -28,13 +14,6 @@ const getRankIcon = (rank) => {
   return (
     <span className="text-muted-foreground font-semibold text-lg">#{rank}</span>
   );
-};
-
-const getWinRateColor = (rate) => {
-  if (rate >= 90) return "text-green-500";
-  if (rate >= 80) return "text-blue-500";
-  if (rate >= 70) return "text-yellow-500";
-  return "text-orange-500";
 };
 
 export default function LeaderboardPage() {
@@ -61,11 +40,7 @@ export default function LeaderboardPage() {
         ? res.data
         : [];
       return raw.map((p, idx) => {
-        const totalWins = p.totalWins ?? p.wins ?? p.stats?.wins ?? 0;
         const totalGames = p.totalGames ?? p.games ?? p.stats?.games ?? 0;
-        const winRate =
-          p.winRate ??
-          (totalGames ? Math.round((totalWins / totalGames) * 100) : 0);
         const name = p.name ?? p.displayName ?? p.username ?? "Player";
         const username =
           p.username ??
@@ -76,7 +51,7 @@ export default function LeaderboardPage() {
           name,
           username,
           score: p.highScore ?? p.score ?? p.bestScore ?? 0,
-          winRate,
+          totalGames,
         };
       });
     },
@@ -169,8 +144,8 @@ export default function LeaderboardPage() {
                     <p className="text-3xl font-bold text-gray-400">
                       {Number(topThree[1]?.score ?? 0).toLocaleString()}
                     </p>
-                    <Badge className="bg-gray-400/20 text-gray-300 border-gray-400/50 text-base px-3 py-1">
-                      {topThree[1]?.winRate ?? 0}% Win Rate
+                    <Badge className="bg-gray-400/20 text-gray-300 border-gray-400/50 text-sm px-2 py-0.5">
+                      {topThree[1]?.totalGames ?? 0} games played
                     </Badge>
                   </div>
                 </CardContent>
@@ -207,8 +182,8 @@ export default function LeaderboardPage() {
                     <p className="text-4xl font-bold text-yellow-400">
                       {Number(topThree[0]?.score ?? 0).toLocaleString()}
                     </p>
-                    <Badge className="bg-yellow-400/20 text-yellow-300 border-yellow-400/50 text-base px-3 py-1">
-                      {topThree[0]?.winRate ?? 0}% Win Rate
+                    <Badge className="bg-yellow-400/20 text-yellow-300 border-yellow-400/50 text-sm px-2 py-0.5">
+                      {topThree[0]?.totalGames ?? 0} games played
                     </Badge>
                   </div>
                 </CardContent>
@@ -246,8 +221,8 @@ export default function LeaderboardPage() {
                     <p className="text-3xl font-bold text-amber-600">
                       {Number(topThree[2]?.score ?? 0).toLocaleString()}
                     </p>
-                    <Badge className="bg-amber-600/20 text-amber-500 border-amber-600/50 text-base px-3 py-1">
-                      {topThree[2]?.winRate ?? 0}% Win Rate
+                    <Badge className="bg-amber-600/20 text-amber-500 border-amber-600/50 text-sm px-2 py-0.5">
+                      {topThree[2]?.totalGames ?? 0} games played
                     </Badge>
                   </div>
                 </CardContent>
@@ -273,10 +248,10 @@ export default function LeaderboardPage() {
                           Player
                         </th>
                         <th className="text-right p-4 font-semibold text-muted-foreground">
-                          Score
+                          High Score
                         </th>
                         <th className="text-right p-4 font-semibold text-muted-foreground">
-                          Win Rate
+                          Games Played
                         </th>
                       </tr>
                     </thead>
@@ -322,12 +297,8 @@ export default function LeaderboardPage() {
                             </span>
                           </td>
                           <td className="p-4 text-right">
-                            <span
-                              className={`font-bold text-lg ${getWinRateColor(
-                                player.winRate || 0
-                              )}`}
-                            >
-                              {player.winRate || 0}%
+                            <span className="text-muted-foreground font-medium">
+                              {Number(player.totalGames || 0).toLocaleString()}
                             </span>
                           </td>
                         </motion.tr>

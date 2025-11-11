@@ -79,14 +79,24 @@ export class UserController {
         });
       }
 
-      // Calculate additional stats
-      const winRate =
-        user.totalGames > 0
-          ? ((user.totalWins / user.totalGames) * 100).toFixed(1)
-          : 0;
-      const lossRate =
-        user.totalGames > 0
-          ? ((user.totalLosses / user.totalGames) * 100).toFixed(1)
+      // Get stats by game mode
+      const statsByMode =
+        await this.userService.userRepository.getGameStatsByMode(user.id);
+
+      // Calculate global stats (total games from all modes)
+      const totalGamesAllModes =
+        statsByMode.classic.total +
+        statsByMode.ranked.total +
+        statsByMode.multiplayer.total;
+
+      // Wins and win rate only apply to multiplayer
+      const multiplayerWins = statsByMode.multiplayer.wins;
+      const multiplayerWinRate =
+        statsByMode.multiplayer.total > 0
+          ? (
+              (statsByMode.multiplayer.wins / statsByMode.multiplayer.total) *
+              100
+            ).toFixed(1)
           : 0;
 
       // Format play time to hours and minutes
@@ -110,11 +120,14 @@ export class UserController {
 
         // Game statistics
         stats: {
-          totalGames: user.totalGames || 0,
-          totalWins: user.totalWins || 0,
-          totalLosses: user.totalLosses || 0,
-          winRate: parseFloat(winRate),
-          lossRate: parseFloat(lossRate),
+          totalGames: totalGamesAllModes || 0,
+          totalWins: multiplayerWins || 0,
+          totalLosses: statsByMode.multiplayer.total - multiplayerWins || 0,
+          winRate: parseFloat(multiplayerWinRate),
+          lossRate:
+            statsByMode.multiplayer.total > 0
+              ? (100 - parseFloat(multiplayerWinRate)).toFixed(1)
+              : 0,
           highScore: user.highScore || 0,
           totalLines: user.totalLines || 0,
           currentStreak: user.currentStreak || 0,
@@ -124,6 +137,32 @@ export class UserController {
           level: user.level || 1,
           experience: user.experience || 0,
           expToNextLevel: expToNextLevel > 0 ? expToNextLevel : 0,
+        },
+
+        // Stats by game mode
+        statsByMode: {
+          classic: {
+            totalGames: statsByMode.classic.total,
+            highScore: statsByMode.classic.highScore,
+            totalLines: statsByMode.classic.totalLines,
+          },
+          ranked: {
+            totalGames: statsByMode.ranked.total,
+            highScore: statsByMode.ranked.highScore,
+            totalLines: statsByMode.ranked.totalLines,
+          },
+          multiplayer: {
+            totalGames: statsByMode.multiplayer.total,
+            wins: statsByMode.multiplayer.wins,
+            winRate:
+              statsByMode.multiplayer.total > 0
+                ? (
+                    (statsByMode.multiplayer.wins /
+                      statsByMode.multiplayer.total) *
+                    100
+                  ).toFixed(1)
+                : 0,
+          },
         },
 
         // Achievements
@@ -353,7 +392,7 @@ export class UserController {
     // Experience from lines cleared
     experience += lines * 10;
 
-    // Time bonus 
+    // Time bonus
     const timeBonus = Math.min(duration / 60, 10);
     experience += Math.floor(timeBonus);
 
@@ -464,7 +503,6 @@ export class UserController {
 
       return newAchievements;
     } catch (error) {
-      console.error(`Error checking achievements for user ${userId}:`, error);
       return [];
     }
   }
@@ -483,13 +521,11 @@ export class UserController {
 
       res.json({ success: true, data: rows });
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to fetch history",
-          error: error.message,
-        });
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch history",
+        error: error.message,
+      });
     }
   };
 
@@ -503,25 +539,91 @@ export class UserController {
         duration = 0,
         result = "loss",
         level = 1,
+        gameMode = "classic",
+        opponentId = null,
+        opponentName = null,
+        roomName = null,
+        metadata = null,
       } = req.body || {};
 
-      const entry = await this.userService.addGameHistory(parseInt(id), {
+      const userId = parseInt(id);
+      const gameData = {
         score: Number(score) || 0,
         lines: Number(lines) || 0,
         duration: Number(duration) || 0,
-        result: ["win", "loss"].includes(result) ? result : "loss",
+        result: ["win", "loss", "draw"].includes(result) ? result : "loss",
         level: Number(level) || 1,
-      });
+        gameMode: ["classic", "ranked", "multiplayer"].includes(gameMode)
+          ? gameMode
+          : "classic",
+        opponentId: opponentId ? Number(opponentId) : null,
+        opponentName: opponentName || null,
+        roomName: roomName || null,
+        metadata: metadata ? JSON.stringify(metadata) : null,
+      };
+
+      // Save game history
+      const entry = await this.userService.addGameHistory(userId, gameData);
+
+      // Update user stats
+      const user = await this.userService.getUserById(userId);
+      if (user) {
+        const updates = {
+          totalGames: (user.totalGames || 0) + 1,
+          totalLines: (user.totalLines || 0) + gameData.lines,
+          totalPlayTime: (user.totalPlayTime || 0) + gameData.duration,
+        };
+
+        // Update high score if this score is higher
+        if (gameData.score > (user.highScore || 0)) {
+          updates.highScore = gameData.score;
+        }
+
+        // Update wins/losses and streak (only for multiplayer)
+        if (gameMode === "multiplayer") {
+          if (result === "win") {
+            updates.totalWins = (user.totalWins || 0) + 1;
+            updates.currentStreak = (user.currentStreak || 0) + 1;
+            updates.longestStreak = Math.max(
+              updates.currentStreak,
+              user.longestStreak || 0
+            );
+          } else {
+            updates.totalLosses = (user.totalLosses || 0) + 1;
+            updates.currentStreak = 0;
+          }
+        }
+
+        // Update experience and level
+        const expGained =
+          Math.floor(gameData.score / 100) + gameData.lines * 10;
+        updates.experience = (user.experience || 0) + expGained;
+
+        // Calculate new level based on experience
+        const newLevel = Math.floor(Math.sqrt(updates.experience / 100)) + 1;
+        if (newLevel > (user.level || 1)) {
+          updates.level = newLevel;
+        }
+
+        await this.userService.updateUser(userId, updates);
+      }
+
+      // Check for new achievements after updating stats
+      const updatedUser = await this.userService.getUserById(userId);
+      if (updatedUser) {
+        const newAchievements = await this.checkUserAchievements(
+          userId,
+          updatedUser
+        );
+      }
 
       res.status(201).json({ success: true, data: entry });
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to add history",
-          error: error.message,
-        });
+      res.status(500).json({
+        success: false,
+        message: "Failed to add history",
+        error: error.message,
+      });
     }
   };
 }

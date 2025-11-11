@@ -10,7 +10,6 @@ export class AuthController {
     try {
       // req.user is populated by Passport.js after successful authentication
       if (!req.user) {
-        console.error("42 OAuth callback: No user found in request");
         const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
         return res.redirect(
           `${clientUrl}/auth/error?message=${encodeURIComponent(
@@ -29,10 +28,8 @@ export class AuthController {
         accessToken
       )}&refresh=${encodeURIComponent(refreshToken)}`;
 
-      console.log("Redirecting to:", redirectUrl);
       res.redirect(redirectUrl);
     } catch (error) {
-      console.error("42 OAuth callback error:", error);
       const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
       res.redirect(
         `${clientUrl}/auth/error?message=${encodeURIComponent(
@@ -141,7 +138,6 @@ export class AuthController {
         email,
       });
 
-      console.log({ user });
       res.status(201).json({
         message: "User registered successfully",
       });

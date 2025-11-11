@@ -54,7 +54,10 @@ app.get("/", (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  // Only log errors in development
+  if (process.env.NODE_ENV === "development") {
+    console.error(err.stack);
+  }
   res.status(500).json({
     success: false,
     message: "Something went wrong!",

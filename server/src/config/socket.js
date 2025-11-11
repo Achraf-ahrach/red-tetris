@@ -10,6 +10,99 @@ const gameRooms = new Map();
 const TETROMINOS = ["I", "O", "T", "S", "Z", "J", "L"];
 
 /**
+ * Save game history to database
+ */
+async function saveGameHistory(playerData, gameData, isWinner, room) {
+  try {
+    const { UserService } = await import("../services/userService.js");
+    const userService = new UserService();
+
+    if (!playerData?.userData?.id) {
+      return;
+    }
+
+    const historyEntry = {
+      score: gameData?.score || gameData?.finalScore || 0,
+      lines: gameData?.lines || gameData?.stats?.lines || 0,
+      duration: room?.gameState?.startTime
+        ? Math.floor((Date.now() - room.gameState.startTime) / 1000)
+        : 0,
+      result: isWinner ? "win" : "loss",
+      level: gameData?.level || gameData?.stats?.level || 1,
+      gameMode: "multiplayer",
+      opponentId: null, // Will be set if opponent has an ID
+      opponentName: null, // Will be set from opponent data
+      roomName: room?.roomName || null,
+      metadata: JSON.stringify({
+        roomId: room?.roomId,
+        playerPosition: room?.players?.findIndex(
+          (p) => p.userData?.id === playerData.userData.id
+        ),
+      }),
+    };
+
+    // Save game history
+    await userService.addGameHistory(playerData.userData.id, historyEntry);
+
+    // Update user stats
+    const user = await userService.getUserById(playerData.userData.id);
+    if (user) {
+      const updates = {
+        totalGames: (user.totalGames || 0) + 1,
+        totalLines: (user.totalLines || 0) + historyEntry.lines,
+        totalPlayTime: (user.totalPlayTime || 0) + historyEntry.duration,
+      };
+
+      // Update high score if this score is higher
+      if (historyEntry.score > (user.highScore || 0)) {
+        updates.highScore = historyEntry.score;
+      }
+
+      // Update wins/losses and streak
+      if (isWinner) {
+        updates.totalWins = (user.totalWins || 0) + 1;
+        updates.currentStreak = (user.currentStreak || 0) + 1;
+        updates.longestStreak = Math.max(
+          updates.currentStreak,
+          user.longestStreak || 0
+        );
+      } else {
+        updates.totalLosses = (user.totalLosses || 0) + 1;
+        updates.currentStreak = 0;
+      }
+
+      // Update experience and level
+      const expGained =
+        Math.floor(historyEntry.score / 100) + historyEntry.lines * 10;
+      updates.experience = (user.experience || 0) + expGained;
+
+      // Calculate new level based on experience
+      const newLevel = Math.floor(Math.sqrt(updates.experience / 100)) + 1;
+      if (newLevel > (user.level || 1)) {
+        updates.level = newLevel;
+      }
+
+      await userService.updateUser(playerData.userData.id, updates);
+
+      // Check for new achievements after updating stats
+      const { UserController } = await import(
+        "../controllers/userController.js"
+      );
+      const userController = new UserController();
+      const updatedUser = await userService.getUserById(playerData.userData.id);
+      if (updatedUser) {
+        const newAchievements = await userController.checkUserAchievements(
+          playerData.userData.id,
+          updatedUser
+        );
+      }
+    }
+  } catch (error) {
+    // Silent fail - game history save error
+  }
+}
+
+/**
  * Generate a sequence of random tetromino pieces
  * Both players will receive the same sequence
  * @param {number} count - Number of pieces to generate
@@ -155,7 +248,6 @@ export function setupSocketHandlers(io) {
       );
 
       if (alreadyInRoom) {
-        console.log(`Player ${username} (${userId}) already in room ${roomId}`);
         // Just send them the room info again instead of error
         socket.emit("room-joined", {
           roomId,
@@ -194,10 +286,6 @@ export function setupSocketHandlers(io) {
       if (isHost) {
         room.hostSocketId = socket.id;
       }
-
-      console.log(
-        `Player ${username} joined room ${room.roomName}. Total players: ${room.players.length}`
-      );
 
       // Notify player they joined
       socket.emit("room-joined", {
@@ -355,13 +443,7 @@ export function setupSocketHandlers(io) {
       // Mark room as finished
       room.gameState.finished = true;
 
-      console.log(
-        `[GAME-OVER] ${losingPlayer?.userData?.username} lost in room ${
-          room.roomName
-        }. Winner: ${winningPlayer?.userData?.username || "None (solo)"}`
-      );
-
-      // Find the opponent (the winner)
+      // Find the losing player (who sent game-over) and the winner
       const losingPlayer = room.players.find((p) => p.socketId === socket.id);
       const winningPlayer = room.players.find((p) => p.socketId !== socket.id);
 
@@ -381,6 +463,10 @@ export function setupSocketHandlers(io) {
             stats,
           },
         });
+
+        // Save game history for both players
+        saveGameHistory(winningPlayer, { finalScore, stats }, true, room);
+        saveGameHistory(losingPlayer, { finalScore, stats }, false, room);
       } else {
         // Solo play: Game just ended (shouldn't happen in multiplayer, but handle it)
         io.to(roomId).emit("game-end", {
@@ -427,7 +513,7 @@ export function setupSocketHandlers(io) {
     });
 
     // Leave game room
-    socket.on("leave-room", ({ roomId }) => {
+    socket.on("leave-room", async ({ roomId }) => {
       const room = gameRooms.get(roomId);
       if (!room) {
         socket.leave(roomId);
@@ -442,9 +528,11 @@ export function setupSocketHandlers(io) {
       if (room.gameState.started && !room.gameState.finished && opponent) {
         room.gameState.finished = true;
 
-        console.log(
-          `[LEAVE] ${leavingPlayer?.userData?.username} left active game in room ${room.roomName}. ${opponent.userData?.username} wins.`
-        );
+        // Save game history for both players
+        await Promise.all([
+          saveGameHistory(leavingPlayer, {}, false, room),
+          saveGameHistory(opponent, {}, true, room),
+        ]);
 
         // Notify both players about game end
         io.to(roomId).emit("game-end", {
@@ -471,11 +559,6 @@ export function setupSocketHandlers(io) {
         }, 10000); // 10 seconds to view results
       } else {
         // Game not started - handle lobby leave
-        console.log(
-          `[LEAVE] ${leavingPlayer?.userData?.username} left lobby in room ${
-            room.roomName
-          }. Players remaining: ${room.players.length - 1}`
-        );
 
         // Notify opponent before removing player
         if (opponent) {
@@ -517,7 +600,7 @@ export function setupSocketHandlers(io) {
     });
 
     // Handle disconnect
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       // Handle room cleanup
       let roomUpdated = false;
       for (const [roomId, room] of gameRooms.entries()) {
@@ -533,9 +616,11 @@ export function setupSocketHandlers(io) {
           if (room.gameState.started && !room.gameState.finished && opponent) {
             room.gameState.finished = true;
 
-            console.log(
-              `[DISCONNECT] ${disconnectingPlayer?.userData?.username} disconnected from active game in room ${room.roomName}. ${opponent.userData?.username} wins.`
-            );
+            // Save game history for both players
+            await Promise.all([
+              saveGameHistory(disconnectingPlayer, {}, false, room),
+              saveGameHistory(opponent, {}, true, room),
+            ]);
 
             // Notify opponent about game end
             io.to(opponent.socketId).emit("game-end", {
@@ -562,13 +647,6 @@ export function setupSocketHandlers(io) {
             }, 10000); // 10 seconds to view results
           } else {
             // Game not started - handle lobby disconnect
-            console.log(
-              `[DISCONNECT] ${
-                disconnectingPlayer?.userData?.username
-              } disconnected from lobby in room ${
-                room.roomName
-              }. Players remaining: ${room.players.length - 1}`
-            );
 
             // Notify opponent before removing player
             if (opponent) {
