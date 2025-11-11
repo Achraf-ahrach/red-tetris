@@ -89,7 +89,7 @@ const LandingPage = () => {
     { type: "I", color: "#ffa500", delay: 9, x: "75%", duration: 16 }, // Orange I-piece
   ];
   return (
-    <div className="relative">
+    <div className=" min-h-screen relative bg-background grid-bg">
       
       {/* Fixed background with falling pieces */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">

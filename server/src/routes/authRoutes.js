@@ -17,7 +17,7 @@ router.get(
   passport.authenticate("42", {
     session: false,
     failureRedirect: `${
-      process.env.CLIENT_URL || "http://localhost:5173/"
+      process.env.CLIENT_URL || "http://localhost:5173"
     }auth/error`,
   }),
   authController.fortyTwoCallback

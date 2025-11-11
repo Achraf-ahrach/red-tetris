@@ -21,7 +21,7 @@ const AppLayout = () => {
   const showSidebar = location.pathname !== "/"; 
 
   return (
-    <div className="min-h-screen flex bg-background text-foreground text-render-optimized selection-primary smooth-scroll">
+    <div className="min-h-screen flex bg-background  text-foreground text-render-optimized selection-primary smooth-scroll ">
       {showSidebar && <Navbar />}
       <main
         className={`${
