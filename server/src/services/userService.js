@@ -15,6 +15,10 @@ export class UserService {
     return await this.userRepository.findByEmail(email);
   }
 
+  async getUserByUsername(username) {
+    return await this.userRepository.findByUsername(username);
+  }
+
   async getAllUsers() {
     const users = await this.userRepository.findAll();
     // Remove passwords from all users
@@ -131,9 +135,21 @@ export class UserService {
     return await bcrypt.hash(password, saltRounds);
   }
 
-  // Verify password
-  async verifyPassword(plainPassword, hashedPassword) {
-    return await bcrypt.compare(plainPassword, hashedPassword);
+  // Verify password - updated signature to accept userId and plain password
+  async verifyPassword(userId, plainPassword) {
+    const user = await this.userRepository.findById(userId);
+    if (!user || !user.password) {
+      return false;
+    }
+    return await bcrypt.compare(plainPassword, user.password);
+  }
+
+  // Update user password
+  async updatePassword(userId, newPassword) {
+    const hashedPassword = await this.hashPassword(newPassword);
+    return await this.userRepository.update(userId, {
+      password: hashedPassword,
+    });
   }
 
   async updateUser(id, userData) {

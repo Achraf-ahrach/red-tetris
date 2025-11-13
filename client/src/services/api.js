@@ -1,5 +1,5 @@
 // API service for user profile and game data using centralized apiClient
-import { apiGet, apiPost } from "@/lib/apiClient";
+import { apiGet, apiPost, apiPut } from "@/lib/apiClient";
 
 const withQuery = (path, params = {}) => {
   const q = new URLSearchParams(
@@ -19,6 +19,16 @@ export const userAPI = {
   // Get current user basic info
   getCurrentUser: async () => {
     return apiGet("/users/me");
+  },
+
+  // Update user profile
+  updateProfile: async (data) => {
+    return apiPut("/users/me/profile", data);
+  },
+
+  // Update user password
+  updatePassword: async (data) => {
+    return apiPut("/users/me/password", data);
   },
 
   // Complete a game

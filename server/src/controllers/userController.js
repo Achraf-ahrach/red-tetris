@@ -68,6 +68,131 @@ export class UserController {
     }
   };
 
+  // Update current user's profile
+  updateCurrentUserProfile = async (req, res) => {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
+      const { firstName, lastName, username, avatar } = req.body;
+
+      // Validate input
+      if (username && username.length < 3) {
+        return res.status(400).json({
+          success: false,
+          message: "Username must be at least 3 characters",
+        });
+      }
+
+      // Check if username is already taken (if changed)
+      if (username && username !== user.username) {
+        const existingUser = await this.userService.getUserByUsername(username);
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            message: "Username already taken",
+          });
+        }
+      }
+
+      // Prepare update data
+      const updateData = {};
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      if (username !== undefined) updateData.username = username;
+      if (avatar !== undefined) updateData.avatar = avatar;
+
+      // Update user
+      const updatedUser = await this.userService.updateUser(user.id, updateData);
+
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+
+      res.json({
+        success: true,
+        message: "Profile updated successfully",
+        data: userWithoutPassword,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to update profile",
+        error: error.message,
+      });
+    }
+  };
+
+  // Update current user's password
+  updateCurrentUserPassword = async (req, res) => {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      // Validate input
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password and new password are required",
+        });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: "New password must be at least 8 characters",
+        });
+      }
+
+      // Verify current password
+      const isPasswordValid = await this.userService.verifyPassword(
+        user.id,
+        currentPassword
+      );
+
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: "Current password is incorrect",
+        });
+      }
+
+      // Update password
+      await this.userService.updatePassword(user.id, newPassword);
+
+      res.json({
+        success: true,
+        message: "Password updated successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to update password",
+        error: error.message,
+      });
+    }
+  };
+
   // Get comprehensive profile data for frontend
   getCurrentUserProfile = async (req, res) => {
     try {
