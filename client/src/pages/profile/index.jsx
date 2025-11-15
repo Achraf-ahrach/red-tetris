@@ -51,6 +51,7 @@ const Profile = () => {
         level: profileData.stats.level,
         xp: profileData.stats.experience,
         xpToNextLevel: profileData.stats.expToNextLevel,
+        is42User: profileData.is42User,
         rank: profileData.performance.skillLevel,
         joinDate: new Date(profileData.createdAt).toLocaleDateString("en-US", {
           month: "short",

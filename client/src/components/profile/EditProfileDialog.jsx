@@ -193,9 +193,15 @@ export default function EditProfileDialog({ open, onOpenChange, user }) {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList
+            className={`grid w-full ${
+              user?.is42User ? "grid-cols-1" : "grid-cols-2"
+            }`}
+          >
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="password">Password</TabsTrigger>
+            {!user?.is42User && (
+              <TabsTrigger value="password">Password</TabsTrigger>
+            )}
           </TabsList>
 
           {/* Profile Tab */}

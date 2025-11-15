@@ -110,7 +110,10 @@ export class UserController {
       if (username !== undefined) updateData.username = username;
 
       // Update user
-      const updatedUser = await this.userService.updateUser(user.id, updateData);
+      const updatedUser = await this.userService.updateUser(
+        user.id,
+        updateData
+      );
 
       if (!updatedUser) {
         return res.status(404).json({
@@ -320,6 +323,7 @@ export class UserController {
         email: user.email,
         avatar: user.avatar,
         createdAt: user.createdAt,
+        is42User: !!user.fortyTwoId,
 
         // Game statistics
         stats: {
