@@ -13,6 +13,20 @@ dist-ssr
 *.local
 .env
 
+# Test Coverage Reports (Generated files - don't commit)
+coverage/
+.nyc_output/
+*.lcov
+coverage-summary.json
+
+# Test Results and Reports (Can be regenerated)
+test-results/
+junit.xml
+test-report.html
+
+# Vitest temporary files
+.vitest/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
