@@ -1,7 +1,7 @@
+import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const TetrisBlock = ({ color, size = 20, className = "" }) => (

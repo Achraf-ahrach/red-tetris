@@ -62,15 +62,15 @@ describe("tokenUtils", () => {
   describe("getAccessToken", () => {
     it("should return access token from localStorage", () => {
       localStorageMock.setItem("accessToken", "test-access-token");
-      
+
       const token = tokenUtils.getAccessToken();
-      
+
       expect(token).toBe("test-access-token");
     });
 
     it("should return null if no token exists", () => {
       const token = tokenUtils.getAccessToken();
-      
+
       expect(token).toBeNull();
     });
 
@@ -78,9 +78,9 @@ describe("tokenUtils", () => {
       localStorageMock.getItem.mockImplementationOnce(() => {
         throw new Error("localStorage error");
       });
-      
+
       const token = tokenUtils.getAccessToken();
-      
+
       expect(token).toBeNull();
     });
   });
@@ -88,15 +88,15 @@ describe("tokenUtils", () => {
   describe("getRefreshToken", () => {
     it("should return refresh token from localStorage", () => {
       localStorageMock.setItem("refreshToken", "test-refresh-token");
-      
+
       const token = tokenUtils.getRefreshToken();
-      
+
       expect(token).toBe("test-refresh-token");
     });
 
     it("should return null if no token exists", () => {
       const token = tokenUtils.getRefreshToken();
-      
+
       expect(token).toBeNull();
     });
 
@@ -104,9 +104,9 @@ describe("tokenUtils", () => {
       localStorageMock.getItem.mockImplementationOnce(() => {
         throw new Error("localStorage error");
       });
-      
+
       const token = tokenUtils.getRefreshToken();
-      
+
       expect(token).toBeNull();
     });
   });
@@ -114,7 +114,7 @@ describe("tokenUtils", () => {
   describe("setTokens", () => {
     it("should store both tokens in localStorage", () => {
       tokenUtils.setTokens("access-123", "refresh-456");
-      
+
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         "accessToken",
         "access-123"
@@ -127,7 +127,7 @@ describe("tokenUtils", () => {
 
     it("should only store access token if refresh token is not provided", () => {
       tokenUtils.setTokens("access-123", null);
-      
+
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         "accessToken",
         "access-123"
@@ -142,7 +142,7 @@ describe("tokenUtils", () => {
       localStorageMock.setItem.mockImplementationOnce(() => {
         throw new Error("localStorage error");
       });
-      
+
       expect(() => {
         tokenUtils.setTokens("access", "refresh");
       }).not.toThrow();
@@ -153,9 +153,9 @@ describe("tokenUtils", () => {
     it("should remove both tokens from localStorage", () => {
       localStorageMock.setItem("accessToken", "test");
       localStorageMock.setItem("refreshToken", "test");
-      
+
       tokenUtils.clearTokens();
-      
+
       expect(localStorageMock.removeItem).toHaveBeenCalledWith("accessToken");
       expect(localStorageMock.removeItem).toHaveBeenCalledWith("refreshToken");
     });
@@ -164,7 +164,7 @@ describe("tokenUtils", () => {
       localStorageMock.removeItem.mockImplementationOnce(() => {
         throw new Error("localStorage error");
       });
-      
+
       expect(() => {
         tokenUtils.clearTokens();
       }).not.toThrow();
@@ -175,19 +175,19 @@ describe("tokenUtils", () => {
     it("should return true when both tokens exist", () => {
       localStorageMock.setItem("accessToken", "access");
       localStorageMock.setItem("refreshToken", "refresh");
-      
+
       expect(tokenUtils.hasTokens()).toBe(true);
     });
 
     it("should return false when only access token exists", () => {
       localStorageMock.setItem("accessToken", "access");
-      
+
       expect(tokenUtils.hasTokens()).toBe(false);
     });
 
     it("should return false when only refresh token exists", () => {
       localStorageMock.setItem("refreshToken", "refresh");
-      
+
       expect(tokenUtils.hasTokens()).toBe(false);
     });
 
@@ -199,7 +199,7 @@ describe("tokenUtils", () => {
   describe("hasAccessToken", () => {
     it("should return true when access token exists", () => {
       localStorageMock.setItem("accessToken", "test");
-      
+
       expect(tokenUtils.hasAccessToken()).toBe(true);
     });
 
@@ -211,29 +211,30 @@ describe("tokenUtils", () => {
   describe("decodeToken", () => {
     it("should decode a valid JWT token", () => {
       // Sample JWT token with payload: {"userId": 123, "exp": 1234567890}
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMywiZXhwIjoxMjM0NTY3ODkwfQ.xxxxx";
-      
+      const token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMywiZXhwIjoxMjM0NTY3ODkwfQ.xxxxx";
+
       const decoded = tokenUtils.decodeToken(token);
-      
+
       expect(decoded).toHaveProperty("userId", 123);
       expect(decoded).toHaveProperty("exp", 1234567890);
     });
 
     it("should return null for invalid token", () => {
       const decoded = tokenUtils.decodeToken("invalid-token");
-      
+
       expect(decoded).toBeNull();
     });
 
     it("should return null for null token", () => {
       const decoded = tokenUtils.decodeToken(null);
-      
+
       expect(decoded).toBeNull();
     });
 
     it("should return null for empty string", () => {
       const decoded = tokenUtils.decodeToken("");
-      
+
       expect(decoded).toBeNull();
     });
   });
@@ -244,9 +245,9 @@ describe("tokenUtils", () => {
       const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(
         JSON.stringify({ exp: futureTime })
       )}.xxxxx`;
-      
+
       const isExpired = tokenUtils.isTokenExpired(token);
-      
+
       expect(isExpired).toBe(false);
     });
 
@@ -255,9 +256,9 @@ describe("tokenUtils", () => {
       const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(
         JSON.stringify({ exp: pastTime })
       )}.xxxxx`;
-      
+
       const isExpired = tokenUtils.isTokenExpired(token);
-      
+
       expect(isExpired).toBe(true);
     });
 
@@ -265,15 +266,15 @@ describe("tokenUtils", () => {
       const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(
         JSON.stringify({ userId: 123 })
       )}.xxxxx`;
-      
+
       const isExpired = tokenUtils.isTokenExpired(token);
-      
+
       expect(isExpired).toBe(true);
     });
 
     it("should return true for invalid token", () => {
       const isExpired = tokenUtils.isTokenExpired("invalid");
-      
+
       expect(isExpired).toBe(true);
     });
   });

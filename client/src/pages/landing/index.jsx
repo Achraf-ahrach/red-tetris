@@ -1,3 +1,4 @@
+import React from "react";
 import { ClassicGame } from "@/components/landing/ClassicGame";
 import { CTA } from "@/components/landing/Cta";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -9,8 +10,6 @@ import { Navbar } from "@/components/Navbar";
 import { motion } from "motion/react";
 
 const LandingPage = () => {
-
-  
   const pieceShapes = {
     I: [
       [0, 0],
@@ -90,7 +89,6 @@ const LandingPage = () => {
   ];
   return (
     <div className=" min-h-screen relative bg-background grid-bg">
-      
       {/* Fixed background with falling pieces */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         {pieces.map((piece, i) => (

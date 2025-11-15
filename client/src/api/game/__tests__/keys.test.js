@@ -47,12 +47,7 @@ describe("gameKeys", () => {
   });
 
   it("should generate userHistory key with userId", () => {
-    expect(gameKeys.userHistory(789)).toEqual([
-      "game",
-      "history",
-      "user",
-      789,
-    ]);
+    expect(gameKeys.userHistory(789)).toEqual(["game", "history", "user", 789]);
   });
 
   it("should handle numeric sessionId", () => {

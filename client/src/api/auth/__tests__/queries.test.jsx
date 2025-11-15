@@ -68,7 +68,7 @@ describe("Auth Queries", () => {
       const { result } = renderHook(() => useMe(), { wrapper });
 
       await waitFor(() => expect(result.current.isError).toBe(true), {
-        timeout: 3000
+        timeout: 3000,
       });
       expect(result.current.error.message).toBe("Unauthorized");
     });
@@ -88,10 +88,9 @@ describe("Auth Queries", () => {
       const mockUser = { id: 1, email: "test@test.com" };
       apiClient.apiGet.mockResolvedValue({ user: mockUser });
 
-      const { result } = renderHook(
-        () => useMe({ staleTime: 60000 }),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useMe({ staleTime: 60000 }), {
+        wrapper,
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockUser);

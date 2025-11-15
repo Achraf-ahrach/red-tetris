@@ -104,7 +104,7 @@ describe("MultiplayerGameRoom URL parsing", () => {
     const path = "/test-room/player1";
     const parts = path.split("/").filter(Boolean);
     const roomName = parts[0];
-    
+
     expect(roomName).toBe("test-room");
   });
 
@@ -112,7 +112,7 @@ describe("MultiplayerGameRoom URL parsing", () => {
     const path = "/test-room/player1";
     const parts = path.split("/").filter(Boolean);
     const playerName = parts[1];
-    
+
     expect(playerName).toBe("player1");
   });
 
@@ -200,7 +200,7 @@ describe("MultiplayerGameRoom garbage system", () => {
     let garbageQueue = 0;
     garbageQueue += 2; // Receive 2 lines
     garbageQueue += 1; // Receive 1 more line
-    
+
     expect(garbageQueue).toBe(3);
   });
 
@@ -208,7 +208,7 @@ describe("MultiplayerGameRoom garbage system", () => {
     let garbageQueue = 5;
     const applied = 3;
     garbageQueue -= applied;
-    
+
     expect(garbageQueue).toBe(2);
   });
 });
@@ -217,7 +217,7 @@ describe("MultiplayerGameRoom player position", () => {
   it("should calculate center starting position", () => {
     const BOARD_WIDTH = 10;
     const startX = Math.floor(BOARD_WIDTH / 2) - 1;
-    
+
     expect(startX).toBe(4);
   });
 

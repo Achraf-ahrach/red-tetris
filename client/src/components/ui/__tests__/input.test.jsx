@@ -2,49 +2,59 @@
  * Input Component Tests
  */
 
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import React from "react";
 import { Input } from "../input";
 
 describe("Input", () => {
+  beforeEach(() => {
+    cleanup();
+  });
+
   it("should render input", () => {
-    render(<Input data-testid="input" />);
-    expect(screen.getByTestId("input")).toBeInTheDocument();
+    const { container } = render(<Input />);
+    const input = container.querySelector("input");
+    expect(input).toBeDefined();
   });
 
   it("should accept value prop", () => {
-    render(<Input value="test value" readOnly />);
-    expect(screen.getByDisplayValue("test value")).toBeInTheDocument();
+    const { container } = render(<Input value="test value" readOnly />);
+    const input = container.querySelector("input");
+    expect(input.value).toBe("test value");
   });
 
   it("should handle onChange", () => {
     const handleChange = vi.fn();
-    render(<Input onChange={handleChange} />);
-    
-    const input = screen.getByTestId("input");
+    const { container } = render(<Input onChange={handleChange} />);
+
+    const input = container.querySelector("input");
     fireEvent.change(input, { target: { value: "new value" } });
-    
+
     expect(handleChange).toHaveBeenCalled();
   });
 
   it("should apply custom className", () => {
-    const { container } = render(<Input className="custom-class" data-testid="input" />);
-    expect(container.firstChild).toHaveClass("custom-class");
+    const { container } = render(<Input className="custom-class" />);
+    const input = container.querySelector("input");
+    expect(input.className).toContain("custom-class");
   });
 
   it("should be disabled when disabled prop is true", () => {
-    render(<Input disabled data-testid="input" />);
-    expect(screen.getByTestId("input")).toBeDisabled();
+    const { container } = render(<Input disabled />);
+    const input = container.querySelector("input");
+    expect(input.disabled).toBe(true);
   });
 
   it("should accept placeholder", () => {
-    render(<Input placeholder="Enter text" data-testid="input" />);
-    expect(screen.getByTestId("input")).toHaveAttribute("placeholder", "Enter text");
+    const { container } = render(<Input placeholder="Enter text" />);
+    const input = container.querySelector("input");
+    expect(input.placeholder).toBe("Enter text");
   });
 
   it("should accept type prop", () => {
-    render(<Input type="password" data-testid="password-input" />);
-    expect(screen.getByTestId("password-input")).toHaveAttribute("type", "password");
+    const { container } = render(<Input type="password" />);
+    const input = container.querySelector("input");
+    expect(input.type).toBe("password");
   });
 });

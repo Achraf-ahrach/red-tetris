@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { cn } from "../utils";
+import { describe, it, expect, beforeEach } from "vitest";
+import { cn, getAvatarUrl } from "../utils";
 
 describe("cn utility", () => {
   it("should merge class names", () => {
@@ -24,7 +24,6 @@ describe("cn utility", () => {
 
   it("should merge conflicting tailwind classes correctly", () => {
     const result = cn("p-4", "p-8");
-    // twMerge should keep only the last one
     expect(result).toBe("p-8");
   });
 
@@ -54,5 +53,45 @@ describe("cn utility", () => {
     expect(result).toContain("class-1");
     expect(result).not.toContain("class-2");
     expect(result).toContain("class-3");
+  });
+});
+
+describe("getAvatarUrl utility", () => {
+  beforeEach(() => {
+    delete import.meta.env.VITE_API_BASE;
+  });
+
+  it("should return placeholder for null or empty avatar", () => {
+    expect(getAvatarUrl(null)).toBe("/placeholder.svg");
+    expect(getAvatarUrl("")).toBe("/placeholder.svg");
+    expect(getAvatarUrl(undefined)).toBe("/placeholder.svg");
+  });
+
+  it("should return absolute http URL as-is", () => {
+    const url = "http://example.com/avatar.jpg";
+    expect(getAvatarUrl(url)).toBe(url);
+  });
+
+  it("should return absolute https URL as-is", () => {
+    const url = "https://example.com/avatar.jpg";
+    expect(getAvatarUrl(url)).toBe(url);
+  });
+
+  it("should prepend server URL for /uploads/ paths", () => {
+    const avatarPath = "/uploads/avatar_123.jpg";
+    const result = getAvatarUrl(avatarPath);
+    expect(result).toBe("http://localhost:3000/uploads/avatar_123.jpg");
+  });
+
+  it("should handle custom API base URL", () => {
+    import.meta.env.VITE_API_BASE = "http://api.example.com/api";
+    const avatarPath = "/uploads/avatar_456.jpg";
+    const result = getAvatarUrl(avatarPath);
+    expect(result).toBe("http://api.example.com/uploads/avatar_456.jpg");
+  });
+
+  it("should return relative paths as-is if not /uploads/", () => {
+    const relativePath = "/images/default.png";
+    expect(getAvatarUrl(relativePath)).toBe(relativePath);
   });
 });

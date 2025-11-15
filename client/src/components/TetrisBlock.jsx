@@ -1,5 +1,4 @@
-
-
+import React from "react";
 
 // TetrisBlock component for visual elements
 export const TetrisBlock = ({ color, size = 20 }) => (
@@ -12,4 +11,4 @@ export const TetrisBlock = ({ color, size = 20 }) => (
       boxShadow: `inset 0 0 0 1px ${color}80, 0 0 8px ${color}40`,
     }}
   />
-)
+);

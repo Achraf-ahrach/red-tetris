@@ -16,36 +16,40 @@ describe("Badge", () => {
 
   it("should apply default variant", () => {
     const { container } = render(<Badge>Default</Badge>);
-    const badge = container.firstChild;
-    expect(badge).toHaveClass("bg-primary");
+    const badge = container.querySelector("div");
+    expect(badge.className).toContain("bg-primary");
   });
 
   it("should apply secondary variant", () => {
     const { container } = render(<Badge variant="secondary">Secondary</Badge>);
-    const badge = container.firstChild;
-    expect(badge).toHaveClass("bg-secondary");
+    const badge = container.querySelector("div");
+    expect(badge.className).toContain("bg-secondary");
   });
 
   it("should apply destructive variant", () => {
-    const { container } = render(<Badge variant="destructive">Destructive</Badge>);
-    const badge = container.firstChild;
-    expect(badge).toHaveClass("bg-destructive");
+    const { container } = render(
+      <Badge variant="destructive">Destructive</Badge>
+    );
+    const badge = container.querySelector("div");
+    expect(badge.className).toContain("bg-destructive");
   });
 
   it("should apply outline variant", () => {
     const { container } = render(<Badge variant="outline">Outline</Badge>);
-    const badge = container.firstChild;
-    expect(badge).toHaveClass("text-foreground");
+    const badge = container.querySelector("div");
+    expect(badge.className).toContain("text-foreground");
   });
 
   it("should accept custom className", () => {
-    const { container } = render(<Badge className="custom-class">Custom</Badge>);
-    const badge = container.firstChild;
-    expect(badge).toHaveClass("custom-class");
+    const { container } = render(
+      <Badge className="custom-class">Custom</Badge>
+    );
+    const badge = container.querySelector("div");
+    expect(badge.className).toContain("custom-class");
   });
 
   it("should pass through additional props", () => {
     render(<Badge data-testid="test-badge">Props</Badge>);
-    expect(screen.getByTestId("test-badge")).toBeInTheDocument();
+    expect(screen.getByTestId("test-badge")).toBeDefined();
   });
 });

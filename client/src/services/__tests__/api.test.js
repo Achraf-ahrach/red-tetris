@@ -10,6 +10,10 @@ import * as apiClient from "@/lib/apiClient";
 vi.mock("@/lib/apiClient", () => ({
   apiGet: vi.fn(),
   apiPost: vi.fn(),
+  apiPut: vi.fn(),
+  default: {
+    post: vi.fn(),
+  },
 }));
 
 describe("userAPI", () => {
@@ -38,6 +42,75 @@ describe("userAPI", () => {
 
       expect(apiClient.apiGet).toHaveBeenCalledWith("/users/me");
       expect(result).toEqual(mockUser);
+    });
+  });
+
+  describe("updateProfile", () => {
+    it("should call apiPut with profile data", async () => {
+      const profileData = { username: "newname", bio: "New bio" };
+      const mockResponse = { success: true };
+      apiClient.apiPut.mockResolvedValue(mockResponse);
+
+      const result = await userAPI.updateProfile(profileData);
+
+      expect(apiClient.apiPut).toHaveBeenCalledWith(
+        "/users/me/profile",
+        profileData
+      );
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe("updatePassword", () => {
+    it("should call apiPut with password data", async () => {
+      const passwordData = { oldPassword: "old", newPassword: "new" };
+      const mockResponse = { success: true };
+      apiClient.apiPut.mockResolvedValue(mockResponse);
+
+      const result = await userAPI.updatePassword(passwordData);
+
+      expect(apiClient.apiPut).toHaveBeenCalledWith(
+        "/users/me/password",
+        passwordData
+      );
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe("uploadAvatar", () => {
+    it("should upload avatar file", async () => {
+      const mockFile = new File(["avatar"], "avatar.jpg", {
+        type: "image/jpeg",
+      });
+      const mockResponse = { avatarUrl: "/uploads/avatar.jpg" };
+
+      const mockPost = vi.fn().mockResolvedValue({ data: mockResponse });
+      vi.mocked(apiClient.default).post = mockPost;
+
+      const result = await userAPI.uploadAvatar(mockFile);
+
+      expect(mockPost).toHaveBeenCalled();
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should handle upload error", async () => {
+      const mockFile = new File(["avatar"], "avatar.jpg", {
+        type: "image/jpeg",
+      });
+      const mockError = {
+        response: {
+          status: 413,
+          data: { message: "File too large" },
+        },
+      };
+
+      const mockPost = vi.fn().mockRejectedValue(mockError);
+      vi.mocked(apiClient.default).post = mockPost;
+
+      const result = await userAPI.uploadAvatar(mockFile);
+
+      expect(result.error).toBe(true);
+      expect(result.status).toBe(413);
     });
   });
 
@@ -158,9 +231,7 @@ describe("achievementAPI", () => {
 
       const result = await achievementAPI.getUserAchievements(userId);
 
-      expect(apiClient.apiGet).toHaveBeenCalledWith(
-        "/achievements/user/111"
-      );
+      expect(apiClient.apiGet).toHaveBeenCalledWith("/achievements/user/111");
       expect(result).toEqual(mockAchievements);
     });
   });

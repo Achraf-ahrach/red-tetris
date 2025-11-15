@@ -19,13 +19,16 @@ describe("Label", () => {
 
   it("should apply custom className", () => {
     const { container } = render(<Label className="custom">Label Text</Label>);
-    expect(container.firstChild).toHaveClass("custom");
+    const label = container.querySelector("label");
+    expect(label.className).toContain("custom");
   });
 
   it("should accept htmlFor prop", () => {
-    render(<Label htmlFor="test-input">Email Label</Label>);
-    const label = screen.getByText("Email Label");
-    expect(label).toHaveAttribute("for", "test-input");
+    const { container } = render(
+      <Label htmlFor="test-input">Email Label</Label>
+    );
+    const label = container.querySelector("label");
+    expect(label.htmlFor).toBe("test-input");
   });
 
   it("should render with associated input", () => {
@@ -35,10 +38,10 @@ describe("Label", () => {
         <input id="email" type="email" />
       </div>
     );
-    
+
     expect(screen.getByText("Email")).toBeDefined();
     const emailInput = screen.getByLabelText("Email");
     expect(emailInput).toBeDefined();
-    expect(emailInput).toHaveAttribute("type", "email");
+    expect(emailInput.type).toBe("email");
   });
 });

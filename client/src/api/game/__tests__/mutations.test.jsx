@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import {
@@ -202,24 +202,18 @@ describe("Game Mutations", () => {
 
   describe("useSaveGameHistory", () => {
     it.skip("should save game history successfully", async () => {
-      // Skipping - async timing issue with mutation
+      // Skip - async timing issue with this specific mutation
       const mockData = { historyId: "hist-123" };
-      apiClient.apiPost.mockResolvedValue({ 
-        data: mockData 
-      });
+      apiClient.apiPost.mockResolvedValue({ data: mockData });
 
       const { result } = renderHook(() => useSaveGameHistory(), { wrapper });
 
-      act(() => {
-        result.current.mutate({
-          userId: 1,
-          gameData: { score: 1000, lines: 10 },
-        });
+      result.current.mutate({
+        userId: 1,
+        gameData: { score: 1000, lines: 10 },
       });
 
-      await waitFor(() => expect(result.current.isSuccess).toBe(true), {
-        timeout: 3000
-      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockData);
       expect(apiClient.apiPost).toHaveBeenCalledWith("/users/1/history", {
         score: 1000,

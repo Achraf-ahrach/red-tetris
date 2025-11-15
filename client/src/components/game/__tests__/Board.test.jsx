@@ -14,17 +14,25 @@ describe("Board Component", () => {
 
   it("should render without crashing", () => {
     const { container } = render(
-      <Board currentBoard={emptyBoard} currentPiece={null} currentPosition={null} />
+      <Board
+        currentBoard={emptyBoard}
+        currentPiece={null}
+        currentPosition={null}
+      />
     );
-    
+
     expect(container).toBeTruthy();
   });
 
   it("should render correct number of cells", () => {
     const { container } = render(
-      <Board currentBoard={emptyBoard} currentPiece={null} currentPosition={null} />
+      <Board
+        currentBoard={emptyBoard}
+        currentPiece={null}
+        currentPosition={null}
+      />
     );
-    
+
     // Should have BOARD_WIDTH * BOARD_HEIGHT cells
     const cells = container.querySelectorAll('[class*="w-full h-full"]');
     expect(cells.length).toBe(BOARD_WIDTH * BOARD_HEIGHT);
@@ -32,10 +40,14 @@ describe("Board Component", () => {
 
   it("should render empty board correctly", () => {
     const { container } = render(
-      <Board currentBoard={emptyBoard} currentPiece={null} currentPosition={null} />
+      <Board
+        currentBoard={emptyBoard}
+        currentPiece={null}
+        currentPosition={null}
+      />
     );
-    
-    const grid = container.querySelector('.grid');
+
+    const grid = container.querySelector(".grid");
     expect(grid).toBeTruthy();
   });
 
@@ -56,7 +68,7 @@ describe("Board Component", () => {
         currentPosition={position}
       />
     );
-    
+
     expect(container).toBeTruthy();
   });
 
@@ -72,18 +84,22 @@ describe("Board Component", () => {
         currentPosition={null}
       />
     );
-    
+
     expect(container).toBeTruthy();
   });
 
   it("should apply grid styling", () => {
     const { container } = render(
-      <Board currentBoard={emptyBoard} currentPiece={null} currentPosition={null} />
+      <Board
+        currentBoard={emptyBoard}
+        currentPiece={null}
+        currentPosition={null}
+      />
     );
-    
-    const grid = container.querySelector('.grid');
+
+    const grid = container.querySelector(".grid");
     expect(grid).toBeTruthy();
-    expect(grid.className).toContain('grid');
+    expect(grid.className).toContain("grid");
   });
 
   it("should handle null current piece", () => {
@@ -94,7 +110,7 @@ describe("Board Component", () => {
         currentPosition={{ x: 0, y: 0 }}
       />
     );
-    
+
     expect(container).toBeTruthy();
   });
 
@@ -111,7 +127,7 @@ describe("Board Component", () => {
         currentPosition={null}
       />
     );
-    
+
     expect(container).toBeTruthy();
   });
 
@@ -132,7 +148,7 @@ describe("Board Component", () => {
         currentPosition={position}
       />
     );
-    
+
     expect(container).toBeTruthy();
   });
 
@@ -145,7 +161,7 @@ describe("Board Component", () => {
         isGameOver={true}
       />
     );
-    
+
     expect(container).toBeTruthy();
   });
 });

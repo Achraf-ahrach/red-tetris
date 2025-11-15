@@ -53,7 +53,7 @@ describe("Auth Mutations", () => {
     wrapper = ({ children }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
-    
+
     // Mock window.location
     delete window.location;
     window.location = { href: "" };
@@ -225,7 +225,11 @@ describe("Auth Mutations", () => {
 
   describe("useUpdateProfile", () => {
     it("should update profile successfully", async () => {
-      const mockUser = { id: 1, email: "updated@test.com", username: "updated" };
+      const mockUser = {
+        id: 1,
+        email: "updated@test.com",
+        username: "updated",
+      };
       apiClient.apiPut.mockResolvedValue({ user: mockUser });
 
       const { result } = renderHook(() => useUpdateProfile(), { wrapper });

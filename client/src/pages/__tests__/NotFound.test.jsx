@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import React from "react";
 import NotFoundPage from "../NotFound";
@@ -21,6 +21,7 @@ vi.mock("react-router-dom", async () => {
 describe("NotFoundPage", () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    cleanup();
   });
 
   it("should render 404 page", () => {
@@ -30,8 +31,8 @@ describe("NotFoundPage", () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText("404")).toBeInTheDocument();
-    expect(screen.getByText("Page Not Found")).toBeInTheDocument();
+    expect(screen.getByText("404")).toBeDefined();
+    expect(screen.getByText("Page Not Found")).toBeDefined();
   });
 
   it("should have go back button", () => {
@@ -42,7 +43,7 @@ describe("NotFoundPage", () => {
     );
 
     const goBackButton = screen.getByText("Go Back");
-    expect(goBackButton).toBeInTheDocument();
+    expect(goBackButton).toBeDefined();
   });
 
   it("should have go home button", () => {
@@ -53,7 +54,7 @@ describe("NotFoundPage", () => {
     );
 
     const goHomeButton = screen.getByText("Go Home");
-    expect(goHomeButton).toBeInTheDocument();
+    expect(goHomeButton).toBeDefined();
   });
 
   it("should navigate back when go back is clicked", () => {
@@ -89,6 +90,6 @@ describe("NotFoundPage", () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText(/Need help/i)).toBeInTheDocument();
+    expect(screen.getByText(/Need help/i)).toBeDefined();
   });
 });

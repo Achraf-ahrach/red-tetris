@@ -56,14 +56,15 @@ describe("Game Queries", () => {
       };
       apiClient.apiGet.mockResolvedValue({ session: mockSession });
 
-      const { result } = renderHook(
-        () => useGameSession("session-123"),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useGameSession("session-123"), {
+        wrapper,
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockSession);
-      expect(apiClient.apiGet).toHaveBeenCalledWith("/game/sessions/session-123");
+      expect(apiClient.apiGet).toHaveBeenCalledWith(
+        "/game/sessions/session-123"
+      );
     });
 
     it("should handle session fetch error", async () => {
@@ -72,10 +73,9 @@ describe("Game Queries", () => {
         data: { message: "Session not found" },
       });
 
-      const { result } = renderHook(
-        () => useGameSession("session-invalid"),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useGameSession("session-invalid"), {
+        wrapper,
+      });
 
       await waitFor(() => expect(result.current.isError).toBe(true));
       expect(result.current.error.message).toBe("Session not found");
@@ -91,10 +91,9 @@ describe("Game Queries", () => {
     it("should not fetch when no tokens", async () => {
       tokenUtils.hasTokens.mockReturnValue(false);
 
-      const { result } = renderHook(
-        () => useGameSession("session-123"),
-        { wrapper }
-      );
+      const { result } = renderHook(() => useGameSession("session-123"), {
+        wrapper,
+      });
 
       expect(result.current.isFetching).toBe(false);
       expect(apiClient.apiGet).not.toHaveBeenCalled();
@@ -159,23 +158,29 @@ describe("Game Queries", () => {
       ];
       apiClient.apiGet.mockResolvedValue({ leaderboard: mockLeaderboard });
 
-      const { result } = renderHook(() => useLeaderboard("classic"), { wrapper });
+      const { result } = renderHook(() => useLeaderboard("classic"), {
+        wrapper,
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockLeaderboard);
-      expect(apiClient.apiGet).toHaveBeenCalledWith("/game/leaderboard?mode=classic");
+      expect(apiClient.apiGet).toHaveBeenCalledWith(
+        "/game/leaderboard?mode=classic"
+      );
     });
 
     it("should fetch leaderboard for different modes", async () => {
-      const mockLeaderboard = [
-        { rank: 1, username: "player1", score: 15000 },
-      ];
+      const mockLeaderboard = [{ rank: 1, username: "player1", score: 15000 }];
       apiClient.apiGet.mockResolvedValue({ leaderboard: mockLeaderboard });
 
-      const { result } = renderHook(() => useLeaderboard("speedrun"), { wrapper });
+      const { result } = renderHook(() => useLeaderboard("speedrun"), {
+        wrapper,
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      expect(apiClient.apiGet).toHaveBeenCalledWith("/game/leaderboard?mode=speedrun");
+      expect(apiClient.apiGet).toHaveBeenCalledWith(
+        "/game/leaderboard?mode=speedrun"
+      );
     });
 
     it("should handle leaderboard fetch error", async () => {
@@ -184,7 +189,9 @@ describe("Game Queries", () => {
         data: { message: "Failed to load leaderboard" },
       });
 
-      const { result } = renderHook(() => useLeaderboard("classic"), { wrapper });
+      const { result } = renderHook(() => useLeaderboard("classic"), {
+        wrapper,
+      });
 
       await waitFor(() => expect(result.current.isError).toBe(true));
       expect(result.current.error.message).toBe("Failed to load leaderboard");
@@ -219,7 +226,9 @@ describe("Game Queries", () => {
     });
 
     it("should not fetch when userId is null", async () => {
-      const { result } = renderHook(() => useUserGameHistory(null), { wrapper });
+      const { result } = renderHook(() => useUserGameHistory(null), {
+        wrapper,
+      });
 
       expect(result.current.isFetching).toBe(false);
       expect(apiClient.apiGet).not.toHaveBeenCalled();
