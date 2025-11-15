@@ -1,5 +1,6 @@
 // API service for user profile and game data using centralized apiClient
 import { apiGet, apiPost, apiPut } from "@/lib/apiClient";
+import apiClient from "@/lib/apiClient";
 
 const withQuery = (path, params = {}) => {
   const q = new URLSearchParams(
@@ -29,6 +30,33 @@ export const userAPI = {
   // Update user password
   updatePassword: async (data) => {
     return apiPut("/users/me/password", data);
+  },
+
+  // Upload avatar
+  uploadAvatar: async (file) => {
+    console.log("uploadAvatar called with file:", file.name, file.type, file.size);
+    const formData = new FormData();
+    formData.append("avatar", file);
+    console.log("FormData created, file appended");
+
+    try {
+      console.log("Sending POST request to /users/me/avatar");
+      const response = await apiClient.post("/users/me/avatar", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Upload response:", response);
+      return response.data;
+    } catch (err) {
+      console.error("Upload error:", err);
+      console.error("Error response:", err.response?.data);
+      return {
+        error: true,
+        status: err.response?.status,
+        data: err.response?.data,
+      };
+    }
   },
 
   // Complete a game

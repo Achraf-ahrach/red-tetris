@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getAvatarUrl } from "@/lib/utils";
 
 export const UserMenu = () => {
   const { user } = useAuth();
@@ -45,7 +46,7 @@ export const UserMenu = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatar} alt={user.username} />
+            <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.username} />
             <AvatarFallback>{userInitials}</AvatarFallback>
           </Avatar>
         </Button>

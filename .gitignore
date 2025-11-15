@@ -33,3 +33,9 @@ server/drizzle/
 # Ignore all markdown files except README.md
 *.md
 !README.md
+
+# Ignore uploaded avatar files but keep the directory structure
+server/uploads/avatars/*
+!server/uploads/avatars/.gitkeep
+server/uploads/temp/*
+!server/uploads/temp/.gitkeep

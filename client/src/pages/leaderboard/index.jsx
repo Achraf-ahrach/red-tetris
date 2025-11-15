@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Trophy, Medal, Crown } from "lucide-react";
 import { userAPI } from "../../services/api";
+import { getAvatarUrl } from "@/lib/utils";
 
 const getRankIcon = (rank) => {
   if (rank === 1) return <Crown className="w-6 h-6 text-yellow-400" />;
@@ -125,7 +126,7 @@ export default function LeaderboardPage() {
                   <Medal className="w-14 h-14 text-gray-400 mx-auto" />
                   <Avatar className="w-20 h-20 mx-auto border-4 border-gray-400 shadow-lg">
                     <AvatarImage
-                      src={topThree[1]?.avatar || "/placeholder.svg"}
+                      src={getAvatarUrl(topThree[1]?.avatar)}
                       alt={topThree[1]?.name || "Player"}
                     />
                     <AvatarFallback>
@@ -163,7 +164,7 @@ export default function LeaderboardPage() {
                   <Crown className="w-16 h-16 text-yellow-400 mx-auto animate-pulse" />
                   <Avatar className="w-24 h-24 mx-auto border-4 border-yellow-400 shadow-xl shadow-yellow-400/30">
                     <AvatarImage
-                      src={topThree[0]?.avatar || "/placeholder.svg"}
+                      src={getAvatarUrl(topThree[0]?.avatar)}
                       alt={topThree[0]?.name || "Player"}
                     />
                     <AvatarFallback>
@@ -202,7 +203,7 @@ export default function LeaderboardPage() {
                   <Medal className="w-14 h-14 text-amber-600 mx-auto" />
                   <Avatar className="w-20 h-20 mx-auto border-4 border-amber-600 shadow-lg">
                     <AvatarImage
-                      src={topThree[2]?.avatar || "/placeholder.svg"}
+                      src={getAvatarUrl(topThree[2]?.avatar)}
                       alt={topThree[2]?.name || "Player"}
                     />
                     <AvatarFallback>
@@ -276,7 +277,7 @@ export default function LeaderboardPage() {
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10 border-2 border-primary/30">
                                 <AvatarImage
-                                  src={player.avatar || "/placeholder.svg"}
+                                  src={getAvatarUrl(player.avatar)}
                                   alt={player.name || "Player"}
                                 />
                                 <AvatarFallback>

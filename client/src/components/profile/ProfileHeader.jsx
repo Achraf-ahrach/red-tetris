@@ -3,6 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import EditProfileDialog from "./EditProfileDialog";
+import { getAvatarUrl } from "@/lib/utils";
 
 export default function ProfileHeader({ user }) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -12,7 +13,7 @@ export default function ProfileHeader({ user }) {
       <div className="flex items-start gap-6 mb-8">
         <Avatar className="w-20 h-20 border border-border">
           <AvatarImage
-            src={user.avatar || "/placeholder.svg"}
+            src={getAvatarUrl(user.avatar)}
             alt={user.name}
           />
           <AvatarFallback className="text-lg bg-muted">

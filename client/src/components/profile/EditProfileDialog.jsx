@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -13,20 +13,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Upload, Loader2 } from "lucide-react";
 import { userAPI } from "../../services/api";
 import { useToast } from "@/components/ui/toast";
+import { getAvatarUrl } from "@/lib/utils";
 
 export default function EditProfileDialog({ open, onOpenChange, user }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("profile");
+  const fileInputRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
     firstName: user?.name?.split(" ")[0] || "",
     lastName: user?.name?.split(" ").slice(1).join(" ") || "",
     username: user?.username || "",
-    avatar: user?.avatar || "",
   });
 
   // Password form state
@@ -77,6 +81,74 @@ export default function EditProfileDialog({ open, onOpenChange, user }) {
       toast.error(error.message || "Failed to update password");
     },
   });
+
+  // Upload avatar mutation
+  const uploadAvatarMutation = useMutation({
+    mutationFn: async (file) => {
+      const response = await userAPI.uploadAvatar(file);
+      if (response?.error || !response?.success) {
+        throw new Error(response?.data?.message || "Failed to upload avatar");
+      }
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["me"]);
+      toast.success("Avatar uploaded successfully!");
+      setSelectedFile(null);
+      setPreviewUrl(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to upload avatar");
+    },
+  });
+
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
+    if (!validTypes.includes(file.type)) {
+      toast.error(
+        "Invalid file type. Please upload a JPG, PNG, GIF, or WebP image."
+      );
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large. Maximum size is 5MB.");
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle avatar upload
+  const handleUploadAvatar = async () => {
+    console.log("handleUploadAvatar called, selectedFile:", selectedFile);
+    if (!selectedFile) {
+      toast.error("Please select a file first");
+      return;
+    }
+
+    console.log("Calling uploadAvatarMutation.mutate with:", selectedFile.name);
+    uploadAvatarMutation.mutate(selectedFile);
+  };
 
   const handleProfileSubmit = (e) => {
     e.preventDefault();
@@ -133,7 +205,7 @@ export default function EditProfileDialog({ open, onOpenChange, user }) {
               <div className="flex flex-col items-center gap-3">
                 <Avatar className="w-20 h-20 border-2 border-border">
                   <AvatarImage
-                    src={profileData.avatar || "/placeholder.svg"}
+                    src={previewUrl || getAvatarUrl(user?.avatar)}
                     alt={profileData.username}
                   />
                   <AvatarFallback className="text-lg">
@@ -141,23 +213,52 @@ export default function EditProfileDialog({ open, onOpenChange, user }) {
                       (profileData.lastName?.[0] || "")}
                   </AvatarFallback>
                 </Avatar>
-              </div>
-
-              {/* Avatar URL */}
-              <div className="space-y-2">
-                <Label htmlFor="avatar">Avatar URL</Label>
-                <Input
-                  id="avatar"
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={profileData.avatar}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, avatar: e.target.value })
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter a URL to your avatar image
-                </p>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Upload a new avatar image
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadAvatarMutation.isPending}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Choose File
+                    </Button>
+                    {selectedFile && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleUploadAvatar}
+                        disabled={uploadAvatarMutation.isPending}
+                      >
+                        {uploadAvatarMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          "Upload"
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                  {selectedFile && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Selected: {selectedFile.name}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* First Name */}

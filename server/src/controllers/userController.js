@@ -1,8 +1,10 @@
 import { UserService } from "../services/userService.js";
+import { AvatarService } from "../services/avatarService.js";
 
 export class UserController {
   constructor() {
     this.userService = new UserService();
+    this.avatarService = new AvatarService();
   }
 
   // Get all users
@@ -80,7 +82,7 @@ export class UserController {
         });
       }
 
-      const { firstName, lastName, username, avatar } = req.body;
+      const { firstName, lastName, username } = req.body;
 
       // Validate input
       if (username && username.length < 3) {
@@ -101,12 +103,11 @@ export class UserController {
         }
       }
 
-      // Prepare update data
+      // Prepare update data (avatar is handled separately via upload endpoint)
       const updateData = {};
       if (firstName !== undefined) updateData.firstName = firstName;
       if (lastName !== undefined) updateData.lastName = lastName;
       if (username !== undefined) updateData.username = username;
-      if (avatar !== undefined) updateData.avatar = avatar;
 
       // Update user
       const updatedUser = await this.userService.updateUser(user.id, updateData);
@@ -188,6 +189,83 @@ export class UserController {
       res.status(500).json({
         success: false,
         message: "Failed to update password",
+        error: error.message,
+      });
+    }
+  };
+
+  // Upload avatar for current user
+  uploadCurrentUserAvatar = async (req, res) => {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
+      const file = req.file;
+
+      console.log("Upload avatar - User:", user.id);
+      console.log("Upload avatar - File:", file);
+
+      if (!file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded",
+        });
+      }
+
+      // Delete old avatar if it exists and is local
+      if (user.avatar && this.avatarService.isLocalAvatar(user.avatar)) {
+        try {
+          console.log("Deleting old avatar:", user.avatar);
+          await this.avatarService.deleteAvatar(user.avatar);
+        } catch (error) {
+          console.error("Failed to delete old avatar:", error);
+          // Continue even if deletion fails
+        }
+      }
+
+      // Save the uploaded avatar
+      console.log("Saving uploaded avatar...");
+      const avatarPath = await this.avatarService.saveUploadedAvatar(
+        file,
+        user.id.toString()
+      );
+      console.log("Avatar saved at:", avatarPath);
+
+      // Update user with new avatar path
+      const updatedUser = await this.userService.updateUser(user.id, {
+        avatar: avatarPath,
+      });
+
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+
+      console.log("Avatar upload successful!");
+      res.json({
+        success: true,
+        message: "Avatar uploaded successfully",
+        data: {
+          avatar: avatarPath,
+          user: userWithoutPassword,
+        },
+      });
+    } catch (error) {
+      console.error("Error in uploadCurrentUserAvatar:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to upload avatar",
         error: error.message,
       });
     }
