@@ -19,7 +19,7 @@ export const SOLID_PENALTY = "Penalty";
 export const TETROMINOES = {
   I: {
     shape: [[1, 1, 1, 1]],
-    color: Block.I,
+    color: Block.I, 
   },
   O: {
     shape: [
