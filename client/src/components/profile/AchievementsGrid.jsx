@@ -41,11 +41,11 @@ export default function AchievementsGrid({
       variants={variants || staggerContainer}
       initial="initial"
       animate="animate"
-      className="mb-10"
+      className="mb-6 sm:mb-10"
     >
       {showTitle && (
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Award className="w-4 h-4 text-muted-foreground " />
             Achievements
             <span className="text-xs text-muted-foreground font-normal">
@@ -84,7 +84,7 @@ export default function AchievementsGrid({
 
         <div
           ref={carouselRef}
-          className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar  px-3 md:px-5"
+          className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar px-1 sm:px-3 md:px-5"
         >
           {items.map((achievement) => {
             const description =
@@ -95,26 +95,26 @@ export default function AchievementsGrid({
               <motion.div
                 key={achievement.id || achievement.name}
                 variants={fadeInUp}
-                className="snap-start shrink-0 w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px]"
+                className="snap-start shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px]"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 360, damping: 18 }}
               >
                 <Card
-                  className={`group relative p-4 text-center mt-5 ${
+                  className={`group relative p-3 sm:p-4 text-center mt-5 ${
                     achievement.unlocked
                       ? "bg-card/60 backdrop-blur-sm border-primary/30 shadow shadow-primary/10"
                       : "bg-card/30 backdrop-blur-sm border-muted/30 opacity-60"
                   } hover:border-primary transition-all`}
                   title={description}
                 >
-                  <div className="text-2xl mb-2">{achievement.icon}</div>
-                  <div className="text-xs font-semibold mb-1 line-clamp-1">
+                  <div className="text-xl sm:text-2xl mb-2">{achievement.icon}</div>
+                  <div className="text-[11px] sm:text-xs font-semibold mb-1 line-clamp-1">
                     {achievement.name}
                   </div>
                   <Badge
                     variant="outline"
-                    className={`text-[10px] h-4 px-1.5 ${
+                    className={`text-[9px] sm:text-[10px] h-4 px-1.5 ${
                       achievement.rarity === "mythic"
                         ? "border-purple-500 text-purple-400 bg-purple-500/10"
                         : achievement.rarity === "legendary"
@@ -130,7 +130,7 @@ export default function AchievementsGrid({
                   </Badge>
 
                   {/* Inline description inside the card */}
-                  <div className="mt-2 text-[11px] text-muted-foreground leading-snug line-clamp-2">
+                  <div className="mt-2 text-[10px] sm:text-[11px] text-muted-foreground leading-snug line-clamp-2">
                     {description}
                   </div>
                 </Card>

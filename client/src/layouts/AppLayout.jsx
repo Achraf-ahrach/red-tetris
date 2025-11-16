@@ -21,17 +21,17 @@ const AppLayout = () => {
   const showSidebar = location.pathname !== "/"; 
 
   return (
-    <div className="min-h-screen flex bg-background  text-foreground text-render-optimized selection-primary smooth-scroll ">
+    <div className="min-h-screen flex bg-background text-foreground text-render-optimized selection-primary smooth-scroll">
       {showSidebar && <Navbar />}
       <main
         className={`${
-          showSidebar ? "ml-16 md:ml-20" : ""
-        } flex-1 relative focus:outline-none`}
+          showSidebar ? "pt-16 md:pt-0 md:ml-20" : ""
+        } flex-1 relative focus:outline-none w-full`}
         tabIndex={-1}
         role="main"
         aria-label="Main content"
       >
-        <div className="pb-20 md:pb-8">
+        <div className="pb-20 md:pb-8 w-full">
           <Outlet />
         </div>
       </main>

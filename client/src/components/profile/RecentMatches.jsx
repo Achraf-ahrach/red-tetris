@@ -33,12 +33,12 @@ export default function RecentMatches({ userData }) {
 
   return (
     <motion.div variants={staggerContainer} initial="initial" animate="animate">
-      <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
-        <Zap className="w-6 h-6 text-primary" />
+      <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 flex items-center gap-3">
+        <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
         Recent Matches
       </h2>
 
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {userData.recentGames.map((game) => {
           const opponentName = game.opponent?.name ?? game.opponentName ?? "AI";
           const opponentAvatar = game.opponent?.avatar ?? "";
@@ -57,38 +57,38 @@ export default function RecentMatches({ userData }) {
               whileHover={{ scale: 1.01, x: 6 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
-              <Card className="p-5 bg-card/60 backdrop-blur-sm border-border/40 hover:border-primary/40 transition-all duration-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-5 min-w-0">
+              <Card className="p-3 sm:p-5 bg-card/60 backdrop-blur-sm border-border/40 hover:border-primary/40 transition-all duration-300">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+                  <div className="flex items-center gap-3 sm:gap-5 min-w-0 w-full sm:w-auto">
                     <Badge
                       className={`${getModeBadgeClass(
                         game.mode
-                      )} px-3 py-1.5 text-xs font-medium`}
+                      )} px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium whitespace-nowrap`}
                     >
                       {game.mode}
                     </Badge>
-                    <div className="min-w-0">
-                      <div className="text-xl font-bold text-foreground mb-0.5">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-lg sm:text-xl font-bold text-foreground mb-0.5">
                         {game.score.toLocaleString()}
                       </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-2 min-w-0">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
                         <span>{game.lines} lines</span>
                         {game.mode === "Multiplayer" &&
                           opponentName !== "AI" && (
                             <>
-                              <span className="opacity-50">•</span>
+                              <span className="opacity-50 hidden sm:inline">•</span>
                               <span className="inline-flex items-center gap-1 min-w-0">
                                 <span className="opacity-80">vs</span>
-                                <Avatar className="w-4 h-4">
+                                <Avatar className="w-3 h-3 sm:w-4 sm:h-4">
                                   <AvatarImage
                                     src={opponentAvatar}
                                     alt={opponentName}
                                   />
-                                  <AvatarFallback className="text-[9px]">
+                                  <AvatarFallback className="text-[8px] sm:text-[9px]">
                                     {initials}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="truncate max-w-[120px]">
+                                <span className="truncate max-w-[80px] sm:max-w-[120px]">
                                   {opponentName}
                                 </span>
                               </span>
@@ -96,7 +96,7 @@ export default function RecentMatches({ userData }) {
                           )}
                         {game.duration && (
                           <>
-                            <span className="opacity-50">•</span>
+                            <span className="opacity-50 hidden sm:inline">•</span>
                             <span>
                               {Math.floor(game.duration / 60)}:
                               {String(game.duration % 60).padStart(2, "0")}
@@ -107,13 +107,13 @@ export default function RecentMatches({ userData }) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="text-xs text-muted-foreground whitespace-nowrap">
+                  <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                    <div className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
                       {game.date}
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-semibold">{game.rank}</div>
-                      <div className="text-[10px] text-muted-foreground">
+                      <div className="text-xs sm:text-sm font-semibold">{game.rank}</div>
+                      <div className="text-[9px] sm:text-[10px] text-muted-foreground">
                         Level
                       </div>
                     </div>
@@ -122,8 +122,8 @@ export default function RecentMatches({ userData }) {
                       <Badge
                         className={
                           game.result === "win"
-                            ? "bg-green-500/15 text-green-400 border-green-500/40 px-3 py-1.5 text-xs font-medium"
-                            : "bg-red-500/15 text-red-400 border-red-500/40 px-3 py-1.5 text-xs font-medium"
+                            ? "bg-green-500/15 text-green-400 border-green-500/40 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium"
+                            : "bg-red-500/15 text-red-400 border-red-500/40 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium"
                         }
                       >
                         {game.result === "win" ? "Victory" : "Defeat"}

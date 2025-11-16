@@ -49,15 +49,15 @@ export default function StatsByMode({ statsByMode, showTitle = true }) {
   ];
 
   return (
-    <div className="mt-8">
+    <div className="mt-6 sm:mt-8">
       {showTitle && (
-        <h2 className="text-2xl font-semibold mb-4">Stats by Game Mode</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4">Stats by Game Mode</h2>
       )}
       <motion.div
         variants={staggerContainer}
         initial="initial"
         animate="animate"
-        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
       >
         {modes.map((mode) => {
           const stats = statsByMode[mode.key] || {
@@ -73,10 +73,10 @@ export default function StatsByMode({ statsByMode, showTitle = true }) {
               <Card
                 className={`${mode.bg} backdrop-blur-sm border ${mode.borderColor} hover:border-opacity-40 transition-all`}
               >
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center justify-between text-lg">
+                <CardHeader className="pb-2 sm:pb-3">
+                  <CardTitle className="flex items-center justify-between text-base sm:text-lg">
                     <span className="flex items-center gap-2">
-                      <span className="text-2xl">{mode.icon}</span>
+                      <span className="text-xl sm:text-2xl">{mode.icon}</span>
                       <span>{mode.name}</span>
                     </span>
                     {stats.totalGames > 0 && (
@@ -86,32 +86,32 @@ export default function StatsByMode({ statsByMode, showTitle = true }) {
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2 sm:space-y-3">
                   {mode.isSolo ? (
                     // Solo modes: Show games played, high score, total lines
                     <>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="text-center">
-                          <div className={`text-2xl font-bold ${mode.color}`}>
+                          <div className={`text-xl sm:text-2xl font-bold ${mode.color}`}>
                             {stats.totalGames}
                           </div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                          <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">
                             Played
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-orange-400">
+                          <div className="text-xl sm:text-2xl font-bold text-orange-400">
                             {stats.highScore || 0}
                           </div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                          <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">
                             High Score
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-cyan-400">
+                          <div className="text-xl sm:text-2xl font-bold text-cyan-400">
                             {stats.totalLines || 0}
                           </div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                          <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">
                             Lines
                           </div>
                         </div>
@@ -122,26 +122,26 @@ export default function StatsByMode({ statsByMode, showTitle = true }) {
                     <>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="text-center">
-                          <div className={`text-2xl font-bold ${mode.color}`}>
+                          <div className={`text-xl sm:text-2xl font-bold ${mode.color}`}>
                             {stats.totalGames}
                           </div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                          <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">
                             Played
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-green-400">
+                          <div className="text-xl sm:text-2xl font-bold text-green-400">
                             {stats.wins}
                           </div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                          <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">
                             Wins
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-accent">
+                          <div className="text-xl sm:text-2xl font-bold text-accent">
                             {stats.winRate}%
                           </div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                          <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">
                             Win Rate
                           </div>
                         </div>

@@ -149,8 +149,8 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="pl-16 relative z-10">
-        <div className="container mx-auto px-6 py-10 max-w-6xl">
+      <div className="relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-6xl">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-3 text-muted-foreground">
@@ -164,8 +164,8 @@ const Profile = () => {
 
   if (isError) {
     return (
-      <div className="pl-16 relative z-10">
-        <div className="container mx-auto px-6 py-10 max-w-6xl">
+      <div className="relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-6xl">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <p className="text-red-500 mb-2">Failed to load profile</p>
@@ -187,8 +187,8 @@ const Profile = () => {
 
   if (!userData) {
     return (
-      <div className="pl-16 relative z-10">
-        <div className="container mx-auto px-6 py-10 max-w-6xl">
+      <div className="relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-6xl">
           <div className="flex items-center justify-center h-64">
             <p className="text-muted-foreground">No profile data available</p>
           </div>
@@ -204,13 +204,13 @@ const Profile = () => {
         <div className="absolute inset-0 grid-bg" />
       </div>
 
-      <div className="pl-16 relative z-10">
-        <div className="container mx-auto px-6 py-10 max-w-6xl">
+      <div className="relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-8 pb-6 border-b border-border/40"
+            className="mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-border/40"
           >
             <ProfileHeader user={userData} />
             <StatsGrid userData={userData} />
@@ -221,11 +221,11 @@ const Profile = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05 }}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold">Game Modes</h2>
-              <span className="text-xs text-muted-foreground">
+              <h2 className="text-xl sm:text-2xl font-semibold">Game Modes</h2>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
                 Performance by mode
               </span>
             </div>
@@ -234,12 +234,12 @@ const Profile = () => {
 
           <AchievementsGrid userData={userData} />
           {recentGames && recentGames?.length > 0 ? (
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8">
               <RecentMatches userData={{ recentGames }} />
             </div>
           ) : (
-            <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-6">Recent Matches</h2>
+            <div className="mt-6 sm:mt-8">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Recent Matches</h2>
               <div className="text-center py-12 bg-card/30 backdrop-blur-sm border border-border/40 rounded-lg">
                 <p className="text-muted-foreground mb-2">
                   No game history yet

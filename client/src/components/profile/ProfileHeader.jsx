@@ -10,13 +10,13 @@ export default function ProfileHeader({ user }) {
 
   return (
     <>
-      <div className="flex items-start gap-6 mb-8">
-        <Avatar className="w-20 h-20 border border-border">
+      <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border border-border">
           <AvatarImage
             src={getAvatarUrl(user.avatar)}
             alt={user.name}
           />
-          <AvatarFallback className="text-lg bg-muted">
+          <AvatarFallback className="text-base sm:text-lg bg-muted">
             {user.name
               .split(" ")
               .map((n) => n[0])
@@ -24,13 +24,13 @@ export default function ProfileHeader({ user }) {
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex-1">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-4xl font-bold mb-1 tracking-tight">
+        <div className="flex-1 w-full">
+          <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-3">
+            <div className="w-full sm:w-auto">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 tracking-tight">
                 {user.name}
               </h1>
-              <p className="text-sm text-muted-foreground font-mono mb-3">
+              <p className="text-xs sm:text-sm text-muted-foreground font-mono mb-2 sm:mb-3">
                 @{user.username}
               </p>
               <div className="flex items-center gap-3">
@@ -43,10 +43,10 @@ export default function ProfileHeader({ user }) {
               variant="outline"
               size="sm"
               onClick={() => setEditDialogOpen(true)}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               <Pencil className="w-4 h-4" />
-              Edit Profile
+              <span className="sm:inline">Edit Profile</span>
             </Button>
           </div>
         </div>

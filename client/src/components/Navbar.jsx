@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Gamepad2, Trophy, User, LogOut, Home } from "lucide-react";
+import { Gamepad2, Trophy, User, LogOut, Home, Menu, X } from "lucide-react";
 import { useLogoutMutation } from "@/hooks/useAuthMutations";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./ui/button";
 
 const navItems = [
@@ -30,24 +30,204 @@ export const Navbar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const logoutMutation = useLogoutMutation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync();
       navigate("/login");
+      setIsMobileMenuOpen(false);
     } catch (e) {
       navigate("/login");
+      setIsMobileMenuOpen(false);
     }
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <motion.nav
-      initial={{ x: -80, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 200, damping: 25, delay: 0.1 }}
-      className="fixed left-0 top-0 bottom-0 z-50 w-20 bg-gradient-to-b from-background/95 via-background/90 to-background/95 backdrop-blur-xl border-r border-border/40 shadow-2xl"
-      aria-label="Sidebar navigation"
-    >
+    <>
+      {/* Mobile Header */}
+      <motion.header
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25 }}
+        className="md:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-r from-background/95 via-background/90 to-background/95 backdrop-blur-xl border-b border-border/40 shadow-lg"
+      >
+        <div className="h-full flex items-center justify-between px-4">
+          {/* Logo */}
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+              delay: 0.1,
+            }}
+          >
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl blur-md group-hover:blur-lg transition-all duration-300" />
+              <div className="relative w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
+                <Gamepad2 className="w-5 h-5 text-primary-foreground" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Hamburger Menu Button */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="relative p-2 rounded-xl text-foreground hover:bg-accent transition-colors"
+            aria-label="Toggle menu"
+          >
+            <AnimatePresence mode="wait">
+              {isMobileMenuOpen ? (
+                <motion.div
+                  key="close"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <X className="w-6 h-6" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="menu"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Menu className="w-6 h-6" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </div>
+      </motion.header>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+              onClick={closeMobileMenu}
+            />
+
+            {/* Mobile Menu */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="md:hidden fixed top-16 right-0 bottom-0 w-64 bg-gradient-to-b from-background/98 via-background/95 to-background/98 backdrop-blur-xl border-l border-border/40 shadow-2xl z-50"
+            >
+              <div className="flex flex-col h-full p-6">
+                {/* Navigation Items */}
+                <nav className="flex-1">
+                  <ul className="flex flex-col gap-2">
+                    {navItems.map((item, index) => {
+                      const isActive = pathname === item.to;
+                      const Icon = item.icon;
+                      return (
+                        <motion.li
+                          key={item.to}
+                          initial={{ x: 50, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{
+                            delay: index * 0.1,
+                            type: "spring",
+                            stiffness: 200,
+                            damping: 20,
+                          }}
+                        >
+                          <Link
+                            to={item.to}
+                            onClick={closeMobileMenu}
+                            className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
+                              isActive
+                                ? "bg-gradient-to-r " +
+                                  item.color +
+                                  " text-white shadow-lg"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent/80"
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span className="font-medium">{item.label}</span>
+                          </Link>
+                        </motion.li>
+                      );
+                    })}
+                  </ul>
+                </nav>
+
+                {/* Decorative Tetris Blocks */}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex justify-center gap-2 mb-6"
+                >
+                  {[
+                    { color: "bg-cyan-500", delay: 0 },
+                    { color: "bg-yellow-500", delay: 0.1 },
+                    { color: "bg-orange-500", delay: 0.2 },
+                  ].map((block, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{
+                        delay: 0.4 + block.delay,
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 20,
+                      }}
+                      className={`w-4 h-4 ${block.color} rounded-sm shadow-lg`}
+                    />
+                  ))}
+                </motion.div>
+
+                {/* Logout Button */}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <Button
+                    variant="ghost"
+                    onClick={handleLogout}
+                    disabled={logoutMutation.isPending}
+                    className="w-full flex items-center justify-center gap-3 p-4 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all duration-300"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span className="font-medium">Logout</span>
+                  </Button>
+                </motion.div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar - Hidden on Mobile */}
+      <motion.nav
+        initial={{ x: -80, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25, delay: 0.1 }}
+        className="hidden md:block fixed left-0 top-0 bottom-0 z-50 w-20 bg-gradient-to-b from-background/95 via-background/90 to-background/95 backdrop-blur-xl border-r border-border/40 shadow-2xl"
+        aria-label="Sidebar navigation"
+      >
       <div className="relative h-full flex flex-col items-center py-6">
         {/* Logo/Brand */}
         <motion.div
@@ -195,6 +375,7 @@ export const Navbar = () => {
         </motion.div>
       </div>
     </motion.nav>
+    </>
   );
 };
 
