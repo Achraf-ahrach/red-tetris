@@ -167,4 +167,71 @@ export class UserService {
   async getGameHistory(userId, options) {
     return this.userRepository.getGameHistoryByUser(userId, options);
   }
+
+  async updateUserStats(userId, stats) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const updateData = {};
+    if (stats.totalGames !== undefined)
+      updateData.totalGames = stats.totalGames;
+    if (stats.totalWins !== undefined) updateData.totalWins = stats.totalWins;
+    if (stats.totalLosses !== undefined)
+      updateData.totalLosses = stats.totalLosses;
+    if (stats.highScore !== undefined) updateData.highScore = stats.highScore;
+    if (stats.totalLines !== undefined)
+      updateData.totalLines = stats.totalLines;
+    if (stats.currentStreak !== undefined)
+      updateData.currentStreak = stats.currentStreak;
+    if (stats.longestStreak !== undefined)
+      updateData.longestStreak = stats.longestStreak;
+    if (stats.totalPlayTime !== undefined)
+      updateData.totalPlayTime = stats.totalPlayTime;
+    if (stats.level !== undefined) updateData.level = stats.level;
+    if (stats.experience !== undefined)
+      updateData.experience = stats.experience;
+
+    return await this.userRepository.update(userId, updateData);
+  }
+
+  async getUserStats(userId) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return {
+      totalGames: user.totalGames || 0,
+      totalWins: user.totalWins || 0,
+      totalLosses: user.totalLosses || 0,
+      highScore: user.highScore || 0,
+      totalLines: user.totalLines || 0,
+      currentStreak: user.currentStreak || 0,
+      longestStreak: user.longestStreak || 0,
+      totalPlayTime: user.totalPlayTime || 0,
+      level: user.level || 1,
+      experience: user.experience || 0,
+      winRate:
+        user.totalGames > 0
+          ? ((user.totalWins / user.totalGames) * 100).toFixed(1)
+          : 0,
+    };
+  }
+
+  async searchUsersByUsername(searchTerm) {
+    const allUsers = await this.userRepository.findAll();
+    const filtered = allUsers.filter(
+      (user) =>
+        user.username &&
+        user.username.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Remove passwords from results
+    return filtered.map((user) => {
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+  }
 }

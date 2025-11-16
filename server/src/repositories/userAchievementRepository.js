@@ -1,4 +1,4 @@
-import { db } from "../config/drizzle.js";
+import { db } from "../config/database.js";
 import { userAchievements, achievements, users } from "../models/user.js";
 import { eq, and } from "drizzle-orm";
 

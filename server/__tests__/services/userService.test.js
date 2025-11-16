@@ -176,60 +176,7 @@ describe("UserService", () => {
     });
   });
 
-  describe("createOrUpdateUserFrom42", () => {
-    const mockProfile = {
-      id: 94521,
-      _json: {
-        id: 94521,
-        email: "user@student.42.fr",
-        login: "user42",
-        first_name: "John",
-        last_name: "Doe",
-        image: {
-          link: "https://example.com/avatar.jpg",
-        },
-      },
-    };
-
-    test("should create new user from 42 profile", async () => {
-      const result = await userService.createOrUpdateUserFrom42(mockProfile);
-
-      // Debug: Let's see what we actually got
-      console.log("Test result:", result);
-      console.log("Mock profile _json:", mockProfile._json);
-
-      // The issue might be in our profile mapping, let's check for fallback values
-      expect(result.fortyTwoId).toBe("94521");
-      expect(result.email).toBe(mockProfile._json.email || `User94521@42.fr`);
-      expect(result.username).toBe(mockProfile._json.login || `user94521`);
-      // Use fallback expectations since the mapping might be using defaults
-      expect(result.firstName).toBeDefined();
-      expect(result.lastName).toBeDefined();
-    });
-
-    test("should update existing 42 user", async () => {
-      // Create user first
-      const user = await userService.createOrUpdateUserFrom42(mockProfile);
-
-      // Update profile data
-      const updatedProfile = {
-        ...mockProfile,
-        _json: {
-          ...mockProfile._json,
-          first_name: "Jane",
-          last_name: "Smith",
-        },
-      };
-
-      const result = await userService.createOrUpdateUserFrom42(updatedProfile);
-
-      expect(result.id).toBe(user.id); // Same user
-      expect(result.fortyTwoId).toBe("94521"); // Should maintain the same 42 ID
-      // Since we're using fallback values, let's just check they exist
-      expect(result.firstName).toBeDefined();
-      expect(result.lastName).toBeDefined();
-    });
-  });
+  // OAuth tests removed - createOrUpdateUserFrom42 method no longer exists
 
   describe("getAllUsers", () => {
     test("should return all users without passwords", async () => {
@@ -252,6 +199,171 @@ describe("UserService", () => {
       expect(users[1].password).toBeUndefined();
       expect(users[0].email).toBe("user1@example.com");
       expect(users[1].email).toBe("user2@example.com");
+    });
+  });
+
+  describe("getUserById", () => {
+    test("should return user by id", async () => {
+      const user = await userService.registerUser({
+        email: "test@example.com",
+        password: "password123",
+        username: "testuser",
+      });
+
+      const result = await userService.getUserById(user.id);
+      expect(result.email).toBe("test@example.com");
+    });
+
+    test("should return null for non-existent user", async () => {
+      const result = await userService.getUserById(999);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("getUserByEmail", () => {
+    test("should return user by email", async () => {
+      await userService.registerUser({
+        email: "test@example.com",
+        password: "password123",
+        username: "testuser",
+      });
+
+      const result = await userService.getUserByEmail("test@example.com");
+      expect(result.email).toBe("test@example.com");
+    });
+
+    test("should return null for non-existent email", async () => {
+      const result = await userService.getUserByEmail(
+        "nonexistent@example.com"
+      );
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("getUserByUsername", () => {
+    test("should return user by username", async () => {
+      await userService.registerUser({
+        email: "test@example.com",
+        password: "password123",
+        username: "testuser",
+      });
+
+      const result = await userService.getUserByUsername("testuser");
+      expect(result.username).toBe("testuser");
+    });
+
+    test("should return null for non-existent username", async () => {
+      const result = await userService.getUserByUsername("nonexistent");
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("createUser", () => {
+    test("should create a new user", async () => {
+      const userData = {
+        email: "new@example.com",
+        password: "hashedpassword",
+        username: "newuser",
+      };
+
+      const result = await userService.createUser(userData);
+      expect(result.email).toBe(userData.email);
+    });
+
+    test("should throw error if user with email exists", async () => {
+      const userData = {
+        email: "existing@example.com",
+        password: "password",
+        username: "user1",
+      };
+
+      await userService.createUser(userData);
+
+      await expect(
+        userService.createUser({
+          ...userData,
+          username: "user2",
+        })
+      ).rejects.toThrow("User already exists with this email");
+    });
+  });
+
+  describe("updateUserStats", () => {
+    test("should update user stats", async () => {
+      const user = await userService.registerUser({
+        email: "test@example.com",
+        password: "password123",
+        username: "testuser",
+      });
+
+      const stats = {
+        totalGames: 10,
+        totalWins: 5,
+        highScore: 1000,
+      };
+
+      const result = await userService.updateUserStats(user.id, stats);
+      expect(result.totalGames).toBe(10);
+      expect(result.totalWins).toBe(5);
+      expect(result.highScore).toBe(1000);
+    });
+  });
+
+  describe("getUserStats", () => {
+    test("should return user stats", async () => {
+      const user = await userService.registerUser({
+        email: "test@example.com",
+        password: "password123",
+        username: "testuser",
+      });
+
+      await userService.updateUserStats(user.id, {
+        totalGames: 10,
+        totalWins: 5,
+      });
+
+      const stats = await userService.getUserStats(user.id);
+      expect(stats.totalGames).toBe(10);
+      expect(stats.totalWins).toBe(5);
+    });
+  });
+
+  describe("searchUsersByUsername", () => {
+    beforeEach(async () => {
+      await userService.registerUser({
+        email: "alice@example.com",
+        password: "password123",
+        username: "alice",
+      });
+      await userService.registerUser({
+        email: "alicia@example.com",
+        password: "password123",
+        username: "alicia",
+      });
+      await userService.registerUser({
+        email: "bob@example.com",
+        password: "password123",
+        username: "bob",
+      });
+    });
+
+    test("should search users by username prefix", async () => {
+      const results = await userService.searchUsersByUsername("ali");
+      expect(results).toHaveLength(2);
+      expect(results.map((u) => u.username)).toContain("alice");
+      expect(results.map((u) => u.username)).toContain("alicia");
+    });
+
+    test("should return empty array for no matches", async () => {
+      const results = await userService.searchUsersByUsername("xyz");
+      expect(results).toHaveLength(0);
+    });
+
+    test("should not include passwords in results", async () => {
+      const results = await userService.searchUsersByUsername("ali");
+      results.forEach((user) => {
+        expect(user.password).toBeUndefined();
+      });
     });
   });
 });
