@@ -26,12 +26,12 @@ const AppLayout = () => {
       <main
         className={`${
           showSidebar ? "pt-16 md:pt-0 md:ml-20" : ""
-        } flex-1 relative focus:outline-none w-full`}
+        } flex-1 relative focus:outline-none w-full min-h-screen overflow-y-auto`}
         tabIndex={-1}
         role="main"
         aria-label="Main content"
       >
-        <div className="pb-20 md:pb-8 w-full">
+        <div className="pb-20 md:pb-8 w-full min-h-full">
           <Outlet />
         </div>
       </main>
