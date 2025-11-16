@@ -21,6 +21,11 @@ async function saveGameHistory(playerData, gameData, isWinner, room) {
       return;
     }
 
+    // Find opponent from the room
+    const opponent = room?.players?.find(
+      (p) => p.userData?.id !== playerData.userData.id
+    );
+
     const historyEntry = {
       score: gameData?.score || gameData?.finalScore || 0,
       lines: gameData?.lines || gameData?.stats?.lines || 0,
@@ -30,8 +35,8 @@ async function saveGameHistory(playerData, gameData, isWinner, room) {
       result: isWinner ? "win" : "loss",
       level: gameData?.level || gameData?.stats?.level || 1,
       gameMode: "multiplayer",
-      opponentId: null, // Will be set if opponent has an ID
-      opponentName: null, // Will be set from opponent data
+      opponentId: opponent?.userData?.id || null,
+      opponentName: opponent?.userData?.username || null,
       roomName: room?.roomName || null,
       metadata: JSON.stringify({
         roomId: room?.roomId,

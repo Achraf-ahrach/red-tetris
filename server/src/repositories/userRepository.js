@@ -102,8 +102,24 @@ export class UserRepository {
 
   async getGameHistoryByUser(userId, { limit = 20, offset = 0 } = {}) {
     const rows = await db
-      .select()
+      .select({
+        id: gameHistory.id,
+        userId: gameHistory.userId,
+        score: gameHistory.score,
+        lines: gameHistory.lines,
+        duration: gameHistory.duration,
+        result: gameHistory.result,
+        level: gameHistory.level,
+        gameMode: gameHistory.gameMode,
+        opponentId: gameHistory.opponentId,
+        opponentName: gameHistory.opponentName,
+        opponentAvatar: users.avatar,
+        roomName: gameHistory.roomName,
+        metadata: gameHistory.metadata,
+        createdAt: gameHistory.createdAt,
+      })
       .from(gameHistory)
+      .leftJoin(users, eq(gameHistory.opponentId, users.id))
       .where(eq(gameHistory.userId, userId))
       .orderBy(desc(gameHistory.createdAt))
       .limit(limit)

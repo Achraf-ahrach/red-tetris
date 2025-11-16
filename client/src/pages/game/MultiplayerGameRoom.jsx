@@ -12,8 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
-  Wifi,
-  WifiOff,
   Trophy,
   Users,
   Play,
@@ -22,7 +20,6 @@ import {
   Zap,
   Crown,
   Share2,
-  Copy,
   Check,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -62,8 +59,6 @@ export default function MultiplayerGameRoom() {
   const roomIdFromState = location.state?.roomId;
   const roomIdFromQuery = searchParams.get("roomId");
 
-  // Use player name from authenticated user (prioritize over URL for security)
-  // If URL has a different name, show warning but still use authenticated username
   const playerName =
     user?.username ||
     (playerNameFromUrl ? decodeURIComponent(playerNameFromUrl) : "Guest");
@@ -117,10 +112,6 @@ export default function MultiplayerGameRoom() {
   const [opponentScore, setOpponentScore] = useState(0);
   const [opponentLines, setOpponentLines] = useState(0);
 
-  // Garbage queue system (like real Tetris games)
-  const [incomingGarbageQueue, setIncomingGarbageQueue] = useState(0);
-  const garbageQueueRef = useRef(0); // Track garbage queue
-
   // Visual feedback for garbage sent/received
   const [recentGarbageReceived, setRecentGarbageReceived] = useState(0);
   const [recentGarbageSent, setRecentGarbageSent] = useState(0);
@@ -131,7 +122,6 @@ export default function MultiplayerGameRoom() {
   const gameStateRef = useRef(gameState);
   const currentPieceRef = useRef(currentPiece);
   const currentPositionRef = useRef(currentPosition);
-  const isReceivingGarbageRef = useRef(false); // Flag to prevent update loops
 
   // Track processed garbage events to prevent duplicates
   const processedGarbageEvents = useRef(new Set());
@@ -148,8 +138,7 @@ export default function MultiplayerGameRoom() {
     currentPositionRef.current = currentPosition;
     // Deep copy to prevent reference sharing
     myBaseBoard.current = board.map((row) => [...row]);
-    garbageQueueRef.current = incomingGarbageQueue;
-  }, [gameState, currentPiece, currentPosition, board, incomingGarbageQueue]);
+  }, [gameState, currentPiece, currentPosition, board]);
 
   // Calculate garbage to send based on lines cleared (n - 1 indestructible lines)
   const calculateGarbageToSend = useCallback((linesCleared) => {
@@ -890,20 +879,6 @@ export default function MultiplayerGameRoom() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-xl">Your Stats</CardTitle>
-                      <Badge
-                        variant={isConnected ? "default" : "destructive"}
-                        className="text-xs"
-                      >
-                        {isConnected ? (
-                          <>
-                            <Wifi className="w-3 h-3 mr-1" /> Online
-                          </>
-                        ) : (
-                          <>
-                            <WifiOff className="w-3 h-3 mr-1" /> Offline
-                          </>
-                        )}
-                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">

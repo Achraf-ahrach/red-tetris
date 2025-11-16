@@ -8,14 +8,7 @@ import AchievementsGrid from "../../components/profile/AchievementsGrid";
 import RecentMatches from "../../components/profile/RecentMatches";
 import { userAPI } from "../../services/api";
 import { getUserAchievementsWithDetails } from "../../constants/achievements";
-
-const stagger = {
-  animate: {
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
-};
+import { getAvatarUrl } from "../../lib/utils";
 
 const Profile = () => {
   const {
@@ -139,10 +132,10 @@ const Profile = () => {
     opponent: g.opponentName
       ? {
           name: g.opponentName,
-          avatar: null,
+          avatar: getAvatarUrl(g.opponentAvatar),
         }
       : null,
-    opponentName: g.opponentName || "AI",
+    opponentName: g.opponentName || null,
     duration: g.duration,
     roomName: g.roomName,
   }));

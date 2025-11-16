@@ -26,7 +26,6 @@ export default function MultiplayerLobby() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [isConnected, setIsConnected] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,20 +37,17 @@ export default function MultiplayerLobby() {
     const connectSocket = async () => {
       try {
         await socketService.connect();
-        setIsConnected(true);
         requestRoomList();
-      } catch (error) {}
+      } catch (error) {
+        console.error("Failed to connect to socket:", error);
+      }
     };
 
     connectSocket();
-
-    return () => {};
   }, []);
 
   // Listen for room updates
   useEffect(() => {
-    if (!isConnected) return;
-
     const handleRoomListUpdate = (rooms) => {
       setAvailableRooms(rooms);
       setIsLoading(false);
@@ -59,16 +55,8 @@ export default function MultiplayerLobby() {
 
     const handleRoomCreated = ({ roomId, roomName }) => {
       setIsCreating(false);
-
-      // Generate shareable URL with room name format: /<room>/<player>
-      const shareUrl = `${window.location.origin}/${encodeURIComponent(
-        roomName
-      )}/${encodeURIComponent(user.username)}`;
-
-      // Copy to clipboard
-      navigator.clipboard.writeText(shareUrl).catch(() => {
-        // Silent fail - user can still copy manually
-      });
+      setNewRoomName("");
+      setShowCreateModal(false);
 
       // Auto-join the room (creator joins automatically)
       navigate(
@@ -107,7 +95,7 @@ export default function MultiplayerLobby() {
       socketService._off("room-joined", handleRoomJoined);
       socketService._off("error", handleError);
     };
-  }, [isConnected, navigate]);
+  }, [navigate, user.username]);
 
   const requestRoomList = () => {
     setIsLoading(true);
@@ -126,9 +114,6 @@ export default function MultiplayerLobby() {
       creatorId: user.id,
       creatorUsername: user.username,
     });
-
-    setNewRoomName("");
-    setShowCreateModal(false);
   };
 
   const joinRoom = (roomId) => {
@@ -158,14 +143,6 @@ export default function MultiplayerLobby() {
               <p className="text-muted-foreground mt-2">
                 Create a game room or join an existing one
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={isConnected ? "default" : "destructive"}
-                className="px-3 py-1"
-              >
-                {isConnected ? "Connected" : "Disconnected"}
-              </Badge>
             </div>
           </div>
         </div>

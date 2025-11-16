@@ -40,15 +40,18 @@ export default function RecentMatches({ userData }) {
 
       <div className="space-y-2 sm:space-y-3">
         {userData.recentGames.map((game) => {
-          const opponentName = game.opponent?.name ?? game.opponentName ?? "AI";
-          const opponentAvatar = game.opponent?.avatar ?? "";
+          const hasOpponent = game.opponent?.name || game.opponentName;
+          const opponentName = game.opponent?.name ?? game.opponentName ?? null;
+          const opponentAvatar = game.opponent?.avatar ?? null;
           const initials = opponentName
-            .split(" ")
-            .filter(Boolean)
-            .map((p) => p[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase();
+            ? opponentName
+                .split(" ")
+                .filter(Boolean)
+                .map((p) => p[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()
+            : "??";
 
           return (
             <motion.div
@@ -73,14 +76,14 @@ export default function RecentMatches({ userData }) {
                       </div>
                       <div className="text-[10px] sm:text-xs text-muted-foreground flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
                         <span>{game.lines} lines</span>
-                        {game.mode === "Multiplayer" &&
-                          opponentName !== "AI" && (
-                            <>
-                              <span className="opacity-50 hidden sm:inline">
-                                •
-                              </span>
-                              <span className="inline-flex items-center gap-1 min-w-0">
-                                <span className="opacity-80">vs</span>
+                        {hasOpponent && opponentName && (
+                          <>
+                            <span className="opacity-50 hidden sm:inline">
+                              •
+                            </span>
+                            <span className="inline-flex items-center gap-1 min-w-0">
+                              <span className="opacity-80">vs</span>
+                              {opponentAvatar && (
                                 <Avatar className="w-3 h-3 sm:w-4 sm:h-4">
                                   <AvatarImage
                                     src={opponentAvatar}
@@ -90,12 +93,13 @@ export default function RecentMatches({ userData }) {
                                     {initials}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="truncate max-w-[80px] sm:max-w-[120px]">
-                                  {opponentName}
-                                </span>
+                              )}
+                              <span className="truncate max-w-[80px] sm:max-w-[120px] font-medium">
+                                {opponentName}
                               </span>
-                            </>
-                          )}
+                            </span>
+                          </>
+                        )}
                         {game.duration && (
                           <>
                             <span className="opacity-50 hidden sm:inline">
@@ -123,16 +127,22 @@ export default function RecentMatches({ userData }) {
                         Level
                       </div>
                     </div>
-                    {/* Only show win/loss badge for Multiplayer games */}
-                    {game.mode === "Multiplayer" && (
+                    {/* Show win/loss badge for games with opponents */}
+                    {hasOpponent && opponentName && (
                       <Badge
                         className={
                           game.result === "win"
                             ? "bg-green-500/15 text-green-400 border-green-500/40 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium"
+                            : game.result === "draw"
+                            ? "bg-blue-500/15 text-blue-400 border-blue-500/40 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium"
                             : "bg-red-500/15 text-red-400 border-red-500/40 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium"
                         }
                       >
-                        {game.result === "win" ? "Victory" : "Defeat"}
+                        {game.result === "win"
+                          ? "Victory"
+                          : game.result === "draw"
+                          ? "Draw"
+                          : "Defeat"}
                       </Badge>
                     )}
                   </div>
