@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Gamepad2, Trophy, Users, Zap, ArrowRight } from "lucide-react";
+import { Gamepad2, Trophy, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -37,22 +37,6 @@ const gameModes = [
       "Live rankings",
     ],
     image: "/modes/multiplayer.jpg",
-  },
-  {
-    id: "survival",
-    title: "Survival Mode",
-    subtitle: "Push Your Limits",
-    description:
-      "Survive as long as possible with increasing speed and difficulty. How long can you last? The blocks fall faster with each passing second.",
-    icon: Zap,
-    color: "from-orange-500 to-red-500",
-    features: [
-      "Rapid difficulty increase",
-      "Endless gameplay",
-      "Speed challenges",
-      "Survival records",
-    ],
-    image: "/modes/survival.jpg",
   },
   {
     id: "ranked",
