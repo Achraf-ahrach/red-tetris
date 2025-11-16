@@ -12,10 +12,7 @@ export default function ProfileHeader({ user }) {
     <>
       <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
         <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border border-border">
-          <AvatarImage
-            src={getAvatarUrl(user.avatar)}
-            alt={user.name}
-          />
+          <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} />
           <AvatarFallback className="text-base sm:text-lg bg-muted">
             {user.name
               .split(" ")

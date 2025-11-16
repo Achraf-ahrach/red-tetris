@@ -70,8 +70,12 @@ export default function StatsGrid({ userData }) {
           <Card
             className={`p-3 sm:p-4 ${stat.bg} backdrop-blur-sm border-border/50 hover:border-border transition-all`}
           >
-            <div className="text-xl sm:text-2xl mb-1 sm:mb-1.5">{stat.icon}</div>
-            <div className={`text-lg sm:text-xl font-bold mb-0.5 ${stat.color}`}>
+            <div className="text-xl sm:text-2xl mb-1 sm:mb-1.5">
+              {stat.icon}
+            </div>
+            <div
+              className={`text-lg sm:text-xl font-bold mb-0.5 ${stat.color}`}
+            >
               {stat.value}
             </div>
             <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">

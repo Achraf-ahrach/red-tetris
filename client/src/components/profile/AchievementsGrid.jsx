@@ -108,7 +108,9 @@ export default function AchievementsGrid({
                   } hover:border-primary transition-all`}
                   title={description}
                 >
-                  <div className="text-xl sm:text-2xl mb-2">{achievement.icon}</div>
+                  <div className="text-xl sm:text-2xl mb-2">
+                    {achievement.icon}
+                  </div>
                   <div className="text-[11px] sm:text-xs font-semibold mb-1 line-clamp-1">
                     {achievement.name}
                   </div>

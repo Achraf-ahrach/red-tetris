@@ -76,7 +76,9 @@ export default function RecentMatches({ userData }) {
                         {game.mode === "Multiplayer" &&
                           opponentName !== "AI" && (
                             <>
-                              <span className="opacity-50 hidden sm:inline">•</span>
+                              <span className="opacity-50 hidden sm:inline">
+                                •
+                              </span>
                               <span className="inline-flex items-center gap-1 min-w-0">
                                 <span className="opacity-80">vs</span>
                                 <Avatar className="w-3 h-3 sm:w-4 sm:h-4">
@@ -96,7 +98,9 @@ export default function RecentMatches({ userData }) {
                           )}
                         {game.duration && (
                           <>
-                            <span className="opacity-50 hidden sm:inline">•</span>
+                            <span className="opacity-50 hidden sm:inline">
+                              •
+                            </span>
                             <span>
                               {Math.floor(game.duration / 60)}:
                               {String(game.duration % 60).padStart(2, "0")}
@@ -112,7 +116,9 @@ export default function RecentMatches({ userData }) {
                       {game.date}
                     </div>
                     <div className="text-right">
-                      <div className="text-xs sm:text-sm font-semibold">{game.rank}</div>
+                      <div className="text-xs sm:text-sm font-semibold">
+                        {game.rank}
+                      </div>
                       <div className="text-[9px] sm:text-[10px] text-muted-foreground">
                         Level
                       </div>

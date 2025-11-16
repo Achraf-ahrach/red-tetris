@@ -239,7 +239,9 @@ const Profile = () => {
             </div>
           ) : (
             <div className="mt-6 sm:mt-8">
-              <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Recent Matches</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">
+                Recent Matches
+              </h2>
               <div className="text-center py-12 bg-card/30 backdrop-blur-sm border border-border/40 rounded-lg">
                 <p className="text-muted-foreground mb-2">
                   No game history yet

@@ -51,7 +51,9 @@ export default function StatsByMode({ statsByMode, showTitle = true }) {
   return (
     <div className="mt-6 sm:mt-8">
       {showTitle && (
-        <h2 className="text-xl sm:text-2xl font-semibold mb-4">Stats by Game Mode</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4">
+          Stats by Game Mode
+        </h2>
       )}
       <motion.div
         variants={staggerContainer}
@@ -92,7 +94,9 @@ export default function StatsByMode({ statsByMode, showTitle = true }) {
                     <>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="text-center">
-                          <div className={`text-xl sm:text-2xl font-bold ${mode.color}`}>
+                          <div
+                            className={`text-xl sm:text-2xl font-bold ${mode.color}`}
+                          >
                             {stats.totalGames}
                           </div>
                           <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -122,7 +126,9 @@ export default function StatsByMode({ statsByMode, showTitle = true }) {
                     <>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="text-center">
-                          <div className={`text-xl sm:text-2xl font-bold ${mode.color}`}>
+                          <div
+                            className={`text-xl sm:text-2xl font-bold ${mode.color}`}
+                          >
                             {stats.totalGames}
                           </div>
                           <div className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">

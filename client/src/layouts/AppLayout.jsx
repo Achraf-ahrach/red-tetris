@@ -18,7 +18,7 @@ const AppLayout = () => {
     }
   }, [location.pathname]);
 
-  const showSidebar = location.pathname !== "/"; 
+  const showSidebar = location.pathname !== "/";
 
   return (
     <div className="min-h-screen flex bg-background text-foreground text-render-optimized selection-primary smooth-scroll">
