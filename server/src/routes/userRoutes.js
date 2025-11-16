@@ -17,7 +17,6 @@ router.put("/me/password", userController.updateCurrentUserPassword);
 
 // Test endpoint to verify route is accessible
 router.get("/me/avatar/test", (req, res) => {
-  console.log("Avatar test endpoint hit!");
   res.json({ success: true, message: "Avatar endpoint is accessible" });
 });
 

@@ -17,12 +17,10 @@ if (!fs.existsSync(tempDir)) {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    console.log("Multer destination called");
     // Temporary upload directory
     cb(null, tempDir);
   },
   filename: (req, file, cb) => {
-    console.log("Multer filename called for:", file.originalname);
     // Generate temporary filename
     const uniqueSuffix = `${Date.now()}-${crypto
       .randomBytes(6)
@@ -34,7 +32,6 @@ const storage = multer.diskStorage({
 
 // File filter to accept only images
 const fileFilter = (req, file, cb) => {
-  console.log("Multer fileFilter called with mimetype:", file.mimetype);
   // Accepted image types
   const allowedMimeTypes = [
     "image/jpeg",
@@ -45,10 +42,8 @@ const fileFilter = (req, file, cb) => {
   ];
 
   if (allowedMimeTypes.includes(file.mimetype)) {
-    console.log("File type accepted");
     cb(null, true);
   } else {
-    console.log("File type rejected");
     cb(
       new Error(
         "Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed."
@@ -69,9 +64,7 @@ export const uploadAvatar = multer({
 
 // Error handling middleware for multer errors
 export const handleUploadError = (err, req, res, next) => {
-  console.log("handleUploadError called with error:", err?.message);
   if (err instanceof multer.MulterError) {
-    console.log("Multer error code:", err.code);
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
@@ -83,12 +76,10 @@ export const handleUploadError = (err, req, res, next) => {
       message: `Upload error: ${err.message}`,
     });
   } else if (err) {
-    console.log("Non-multer error:", err);
     return res.status(400).json({
       success: false,
       message: err.message || "Error uploading file",
     });
   }
-  console.log("No error, calling next()");
   next();
 };

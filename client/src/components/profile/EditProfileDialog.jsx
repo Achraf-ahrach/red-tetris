@@ -140,13 +140,11 @@ export default function EditProfileDialog({ open, onOpenChange, user }) {
 
   // Handle avatar upload
   const handleUploadAvatar = async () => {
-    console.log("handleUploadAvatar called, selectedFile:", selectedFile);
     if (!selectedFile) {
       toast.error("Please select a file first");
       return;
     }
 
-    console.log("Calling uploadAvatarMutation.mutate with:", selectedFile.name);
     uploadAvatarMutation.mutate(selectedFile);
   };
 

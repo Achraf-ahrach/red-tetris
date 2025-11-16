@@ -3,9 +3,6 @@ import { UserService } from "../services/userService.js";
 const userService = new UserService();
 
 export const authenticateJWT = async (req, res, next) => {
-  console.log("Authenticating JWT...");
-  console.log("Request Headers:", req.headers.authorization);
-
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 

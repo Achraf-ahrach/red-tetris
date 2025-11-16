@@ -211,9 +211,6 @@ export class UserController {
 
       const file = req.file;
 
-      console.log("Upload avatar - User:", user.id);
-      console.log("Upload avatar - File:", file);
-
       if (!file) {
         return res.status(400).json({
           success: false,
@@ -224,7 +221,6 @@ export class UserController {
       // Delete old avatar if it exists and is local
       if (user.avatar && this.avatarService.isLocalAvatar(user.avatar)) {
         try {
-          console.log("Deleting old avatar:", user.avatar);
           await this.avatarService.deleteAvatar(user.avatar);
         } catch (error) {
           console.error("Failed to delete old avatar:", error);
@@ -233,12 +229,10 @@ export class UserController {
       }
 
       // Save the uploaded avatar
-      console.log("Saving uploaded avatar...");
       const avatarPath = await this.avatarService.saveUploadedAvatar(
         file,
         user.id.toString()
       );
-      console.log("Avatar saved at:", avatarPath);
 
       // Update user with new avatar path
       const updatedUser = await this.userService.updateUser(user.id, {
@@ -255,7 +249,6 @@ export class UserController {
       // Remove password from response
       const { password, ...userWithoutPassword } = updatedUser;
 
-      console.log("Avatar upload successful!");
       res.json({
         success: true,
         message: "Avatar uploaded successfully",

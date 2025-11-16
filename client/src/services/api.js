@@ -34,19 +34,15 @@ export const userAPI = {
 
   // Upload avatar
   uploadAvatar: async (file) => {
-    console.log("uploadAvatar called with file:", file.name, file.type, file.size);
     const formData = new FormData();
     formData.append("avatar", file);
-    console.log("FormData created, file appended");
 
     try {
-      console.log("Sending POST request to /users/me/avatar");
       const response = await apiClient.post("/users/me/avatar", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Upload response:", response);
       return response.data;
     } catch (err) {
       console.error("Upload error:", err);
