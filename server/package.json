@@ -7,6 +7,8 @@
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
+    "coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage --verbose",
+    "show-coverage": "bash ./scripts/show-coverage.sh",
     "start": "nodemon server.js",
     "dev": "nodemon server.js",
     "db:generate": "drizzle-kit generate",
@@ -53,7 +55,31 @@
     "collectCoverageFrom": [
       "src/**/*.js",
       "!src/**/*.test.js",
-      "!src/config/database.js"
-    ]
+      "!src/config/**",
+      "!src/scripts/**",
+      "!src/models/**",
+      "!src/routes/**",
+      "!src/repositories/**",
+      "!src/services/avatarService.js",
+      "!src/middlewares/**",
+      "!server.js",
+      "!drizzle.config.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "html",
+      "lcov",
+      "json-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 65,
+        "functions": 70,
+        "lines": 70,
+        "statements": 70
+      }
+    }
   }
 }

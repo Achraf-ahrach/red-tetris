@@ -27,13 +27,36 @@ export const users = pgTable("users", {
   totalLines: integer("total_lines").default(0),
   currentStreak: integer("current_streak").default(0),
   longestStreak: integer("longest_streak").default(0),
-  totalPlayTime: integer("total_play_time").default(0), 
+  totalPlayTime: integer("total_play_time").default(0),
   level: integer("level").default(1),
   experience: integer("experience").default(0),
-  achievements: json("achievements").default([]), 
+  achievements: json("achievements").default([]),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  criteria: json("criteria").notNull(),
+  icon: varchar("icon", { length: 255 }),
+  points: integer("points").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  achievementId: integer("achievement_id")
+    .notNull()
+    .references(() => achievements.id),
+  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
 });
 
 export const ACHIEVEMENTS = {

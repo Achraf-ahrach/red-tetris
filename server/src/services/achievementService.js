@@ -54,6 +54,11 @@ export class AchievementService {
     // { type: "streak", value: 10 }
     // { type: "lines", value: 1000 }
 
+    // Handle null/undefined inputs
+    if (!criteria || !userData) {
+      return false;
+    }
+
     switch (criteria.type) {
       case "score":
         return userData.highScore >= criteria.value;
