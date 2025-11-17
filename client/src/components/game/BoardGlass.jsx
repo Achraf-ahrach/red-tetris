@@ -80,7 +80,7 @@ const BoardGlass = memo(function BoardGlass({
             ny < BOARD_HEIGHT &&
             nx >= 0 &&
             nx < BOARD_WIDTH &&
-            currentBoard[ny][nx] === EmptyCell.Empty &&
+            currentBoard?.[ny]?.[nx] === EmptyCell.Empty &&
             !activeSet.has(`${ny},${nx}`)
           ) {
             set.add(`${ny},${nx}`);
@@ -131,11 +131,13 @@ const BoardGlass = memo(function BoardGlass({
               Array.from({ length: BOARD_WIDTH }).map((_, x) => {
                 const key = `${y},${x}`;
                 const isActive = activeSet.has(key);
-                const baseFilled = currentBoard[y][x] !== EmptyCell.Empty;
+                const cellValue = currentBoard?.[y]?.[x];
+                const baseFilled =
+                  cellValue !== undefined && cellValue !== EmptyCell.Empty;
                 const colorHex = isActive
                   ? activeColor
                   : baseFilled
-                  ? toHex(currentBoard[y][x])
+                  ? toHex(cellValue)
                   : null;
 
                 if (colorHex) {

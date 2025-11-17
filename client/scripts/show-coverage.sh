@@ -15,23 +15,64 @@ echo -e "${BOLD}${BLUE}═══════════════════
 echo ""
 
 # Run coverage and capture output
+echo "Running test coverage analysis..."
 npm run coverage --silent 2>&1 | tee /tmp/coverage_output.txt
 
-# Extract coverage percentages
-LINES=$(grep "All files" /tmp/coverage_output.txt | awk '{print $10}')
-STATEMENTS=$(grep "All files" /tmp/coverage_output.txt | awk '{print $2}')
-BRANCHES=$(grep "All files" /tmp/coverage_output.txt | awk '{print $4}')
-FUNCTIONS=$(grep "All files" /tmp/coverage_output.txt | awk '{print $6}')
+# Check if coverage report exists by looking for the coverage table
+if grep -q "% Coverage report from v8" /tmp/coverage_output.txt; then
+    # Extract the "All files" line from the coverage table
+    COVERAGE_LINE=$(grep -A20 "% Coverage report from v8" /tmp/coverage_output.txt | grep "All files" | head -1)
+    
+    if [ -n "$COVERAGE_LINE" ]; then
+        # Parse the coverage line format: All files          |   83.64 |    77.29 |   88.96 |   83.15 |
+        # Remove extra spaces and extract values between | delimiters
+        STATEMENTS=$(echo "$COVERAGE_LINE" | awk -F'|' '{print $2}' | xargs)
+        BRANCHES=$(echo "$COVERAGE_LINE" | awk -F'|' '{print $3}' | xargs)
+        FUNCTIONS=$(echo "$COVERAGE_LINE" | awk -F'|' '{print $4}' | xargs)
+        LINES=$(echo "$COVERAGE_LINE" | awk -F'|' '{print $5}' | xargs)
+    else
+        echo "Could not find 'All files' line in coverage report"
+        STATEMENTS="N/A"
+        BRANCHES="N/A" 
+        FUNCTIONS="N/A"
+        LINES="N/A"
+    fi
+else
+    echo "No coverage report generated"
+    STATEMENTS="N/A"
+    BRANCHES="N/A" 
+    FUNCTIONS="N/A"
+    LINES="N/A"
+fi
 
 echo ""
 echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${BOLD}                    COVERAGE SUMMARY                        ${NC}"
 echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "  ${BOLD}Lines:${NC}      ${GREEN}${LINES}%${NC}  ${GREEN}✓${NC} (Threshold: 70%)"
-echo -e "  ${BOLD}Statements:${NC} ${GREEN}${STATEMENTS}%${NC}  ${GREEN}✓${NC} (Threshold: 70%)"
-echo -e "  ${BOLD}Functions:${NC}  ${GREEN}${FUNCTIONS}%${NC}  ${GREEN}✓${NC} (Threshold: 70%)"
-echo -e "  ${BOLD}Branches:${NC}   ${GREEN}${BRANCHES}%${NC}  ${GREEN}✓${NC} (Threshold: 50%)"
+
+# Function to display coverage with color coding
+display_coverage() {
+    local label="$1"
+    local value="$2"
+    local threshold="$3"
+    
+    if [ "$value" = "N/A" ]; then
+        echo -e "  ${BOLD}${label}:${NC} ${YELLOW}${value}${NC}  ${YELLOW}?${NC} (Threshold: ${threshold}%)"
+    else
+        # Use awk for floating point comparison instead of bc
+        if awk "BEGIN {exit !($value >= $threshold)}"; then
+            echo -e "  ${BOLD}${label}:${NC} ${GREEN}${value}%${NC}  ${GREEN}✓${NC} (Threshold: ${threshold}%)"
+        else
+            echo -e "  ${BOLD}${label}:${NC} ${RED}${value}%${NC}  ${RED}✗${NC} (Threshold: ${threshold}%)"
+        fi
+    fi
+}
+
+display_coverage "Statements" "$STATEMENTS" "70"
+display_coverage "Branches  " "$BRANCHES" "50"
+display_coverage "Functions " "$FUNCTIONS" "70"
+display_coverage "Lines     " "$LINES" "70"
 echo ""
 echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${BOLD}                    TEST SUMMARY                           ${NC}"

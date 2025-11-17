@@ -8,6 +8,20 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import GuestRoute from "../GuestRoute";
 
+// Mock React Router Navigate component to prevent hanging
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    Navigate: ({ to, children }) => (
+      <div data-testid="navigate-redirect" data-redirect-to={to}>
+        {children}
+      </div>
+    ),
+    useLocation: () => ({ pathname: "/test" }),
+  };
+});
+
 // Mock useAuth hook
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
@@ -24,6 +38,7 @@ describe("GuestRoute", () => {
   it("should render children when not authenticated", () => {
     useAuth.mockReturnValue({
       isAuthenticated: () => false,
+      loading: false,
     });
 
     const { getByText } = render(
@@ -40,9 +55,10 @@ describe("GuestRoute", () => {
   it("should redirect when authenticated", () => {
     useAuth.mockReturnValue({
       isAuthenticated: () => true,
+      loading: false,
     });
 
-    const { container } = render(
+    const { getByTestId } = render(
       <BrowserRouter>
         <GuestRoute>
           <div>Guest Content</div>
@@ -50,6 +66,9 @@ describe("GuestRoute", () => {
       </BrowserRouter>
     );
 
-    expect(container).toBeDefined();
+    // Should show redirect component instead of children
+    const redirectElement = getByTestId("navigate-redirect");
+    expect(redirectElement).toBeDefined();
+    expect(redirectElement.getAttribute("data-redirect-to")).toBe("/profile");
   });
 });
